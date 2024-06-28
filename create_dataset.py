@@ -41,8 +41,9 @@ def create_data(num=1000,pos=1):
         dataset.append(data)
     return dataset
 def create_dataset(num=1000,proc_num=1):
+    dataset = []
     if proc_num==1:
-        create_data(num)
+        dataset = create_data(num)
     else:
         freeze_support()
         pool = multiprocessing.Pool(proc_num,initializer=tqdm.tqdm.set_lock, initargs=(RLock(),))
@@ -50,11 +51,10 @@ def create_dataset(num=1000,proc_num=1):
         pool.close()
         pool.join()
         print("\n"*proc_num)
-        dataset = []
         for r in result:
             dataset+=r
-        with open(f"dataset/data_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.dat","wb") as f:
-            pickle.dump(dataset,f)
+    with open(f"dataset/data_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.dat","wb") as f:
+        pickle.dump(dataset,f)
 if __name__ == "__main__":
     dataset_num = 45
     create_dataset(dataset_num,1)
