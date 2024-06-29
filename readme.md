@@ -7,7 +7,7 @@
    ```bash
    python3 -m venv /(新しい仮想環境のパス)
    source /(新しい仮想環境のパス)/bin/activate #(For linux)
-   /(新しい仮想環境のパス)/bin/activate.bat #(For windows)
+   /(新しい仮想環境のパス)/Scripts/activate.bat #(For windows)
    ```
 
 2. 必要なライブラリをインストールする。
