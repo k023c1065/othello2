@@ -3,7 +3,7 @@ from modellib import *
 from glob import glob
 import os
 import numpy as np
-import argparse
+
 def load_model():
     model = miniResNet(input_shape=(2,8,8),output_dim=64)
     model(np.zeros((1,2,8,8)),training=False)
