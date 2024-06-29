@@ -50,7 +50,7 @@ if __name__ == "__main__":
             print(game.print_human_view())
             print("turn:",game.turn,"symbol:",game.get_symbol(game.turn))
             valid_moves=game.get_valid_moves()
-            print(valid_moves)
+            print("valid moves:",valid_moves)
             
             if len(valid_moves)>0:
                 if game.turn==1:
@@ -70,10 +70,12 @@ if __name__ == "__main__":
                     while True:
                         try:
                             x ,y=random.choice(valid_moves)
-                            x ,y = map(int,input().split())
+                            x ,y = map(int,input("Your turn.Enter your next move:").split())
                             if (x,y) in valid_moves:
                                 break
+                            print("[ERROR]Invalid move. Please enter a valid move.")   
                         except ValueError:
+                            print("[ERROR]Unexpected input. Please enter two integers separated by a space.")  
                             pass
                 # x,y=random.choice(valid_moves)
             else:
@@ -89,10 +91,12 @@ if __name__ == "__main__":
         print("Game finished.")
         
         score = game.get_score()
-        print("Score:",score)
+        print(f"Score:{score[0]}vs{score[1]}")
+        print("Result:",end=" ")
         if score[0]>score[1]:
-            result[0]+=1
+            print("Player 1 wins!")
+        elif score[0]<score[1]:
+            print("Player 2 wins!")
         else:
-            result[1]+=1
-        print("Result:",result)
+            print("Draw!")
         input("Press Enter to continue...")
