@@ -27,13 +27,13 @@ class model_class:
         return model
     
     def predict(self,x:np.ndarray,training=False,**kwargs):
-        x = hashable_board(x)
+        #x = hashable_board(x)
         return self._predict(x,training)
     
-    @functools.lru_cache(maxsize=512)
+    #@functools.lru_cache(maxsize=512)
     def _predict(self,x,training=False):
-        x = x.data
-        return self.model.predict(np.array(x),verbose=0)
+        #x = x.data
+        return self.model.predict(x,verbose=0)
     
 class hashable_board:
     def __init__(self,content):
