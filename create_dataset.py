@@ -2,13 +2,13 @@ from game import othello_class,format_board
 import multiprocessing,tqdm,random
 from multiprocessing import Pool, freeze_support, RLock
 import datetime,pickle
-from modellib import miniResNet,model_class,load_model
-from game import minimax_search,ab_search
+from modellib import miniResNet,model_class
+from game import minimax_search,ab_search,minimax_search2
 import numpy as np
 def play_game(model=None):
     game = othello_class(undo_flg=True)
     data=[]
-    minimax = ab_search(model)
+    minimax = minimax_search2(model)
     if model is not None:
         ai_turn  = random.choice([1,-1])
     while game.check_winner() == 0:
@@ -56,5 +56,5 @@ def create_dataset(num=1000,proc_num=1):
     with open(f"dataset/data_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.dat","wb") as f:
         pickle.dump(dataset,f)
 if __name__ == "__main__":
-    dataset_num = 45
+    dataset_num = 1500
     create_dataset(dataset_num,1)

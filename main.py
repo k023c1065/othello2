@@ -1,39 +1,46 @@
-from game import othello_class,minimax_search,ab_search
+from game import othello_class,minimax_search2,ab_search
 from modellib import *
+from gui import othello_gui
 from glob import glob
 import os
 import numpy as np
+class main_controler:
+    def __init__(self):
+        self.gui = othello_gui()
+        self.gui.add_click_event(self.click_event)
+        self.game = othello_class(undo_flg=True)
+        self.gui.update_board(self.game.board)
+        self.HUMAN_TURN=1
+        self.AI=minimax_search2(model_class())
+    def click_event(self,args):
+        if self.game.turn == self.HUMAN_TURN:
+            x,y = args.x//90,args.y//90
+            if self.try_move(x,y):
+                self.gui.update_board(self.game.board)
+                
+        if self.game.turn != self.HUMAN_TURN:
+            score,ai_move = self.AI.search(self.game,1,3)
+            self.game.apply_move(*ai_move)
+            self.gui.update_board(self.game.board)
+        if self.game.check_winner() !=0:
+            pass
+                
+    def try_move(self,x,y):
+        if (x,y) in self.game.get_valid_moves():
+            self.game.apply_move(x,y)
+            return True
+        if self.game.get_valid_moves() == []:
+            self.game.apply_move(-1,-1)
+            return True
+        return False
+    def start(self):
+        self.gui.mainloop()
+        pass
 
-def load_model():
-    model = miniResNet(input_shape=(2,8,8),output_dim=64)
-    model(np.zeros((1,2,8,8)),training=False)
-    model_files = glob("model/*.h5")
-    #model_filesを更新日時順でソートする
-    model_files.sort(key=os.path.getmtime)
-    if len(model_files)>0:
-        model.load_weights(model_files[-1])
-    return model
-def format_board(board):
-    new_board=[[[0]*8 for _ in range(8)],[[0]*8 for _ in range(8)]]
-    for i in range(8):
-        for j in range(8):
-            if board[i][j]==1:
-                new_board[0][i][j]=1
-            elif board[i][j]==-1:
-                new_board[1][i][j]=1
-    return np.array(new_board)
-def get_move(model:miniResNet,board,movable_list):
-    board = format_board(board)
-    prediction = model(board[np.newaxis],training=False)
-    prediction = prediction.numpy().reshape(8,8)
-    score_list=[]
-    for move in movable_list:
-        x,y=move[0],move[1]
-        #print(f"Move:{x},{y} Score:{prediction[x][y]}")
-        score_list.append(prediction[x][y])
-    best_move = random.choices(movable_list,weights = np.exp(score_list),k=1)[0]
-    return best_move[0],best_move[1]
 if __name__ == "__main__":
+    controller = main_controler()
+    controller.start()
+    input("Waiting...")
     import random,time
     s_t=time.time()
     itr=0
@@ -41,7 +48,7 @@ if __name__ == "__main__":
     model = model_class()
     result = [0,0]
     ab = ab_search(model)
-    minimax = minimax_search()
+    minimax = minimax_search2()
     while True:
         print("Starting the game...")
         game = othello_class(undo_flg=True)
@@ -56,11 +63,11 @@ if __name__ == "__main__":
                 if game.turn==1:
                     s_t=time.time()
                     print("AI is thinking...",end="")
-                    ab.reset()
+                    #ab.reset()
                     # print("---------------AB--------------")
-                    ab_score,(x, y) = ab.search(game=game,my_turn=1,depth=2)
+                    #ab_score,(x, y) = ab.search(game=game,my_turn=1,depth=2)
                     # print("-------------minimax-----------")
-                    # mini_score,(i,j) = minimax.search(game=game,my_turn=1,depth=2,model=model)
+                    mini_score,(x,y) = minimax.search(game=game,my_turn=1,depth=2,model=model)
                     
                     # print(f"AB:{x},{y},{ab_score} \nMinimax:{i},{j},{mini_score}")
                     # if not(i==x and y==j):
