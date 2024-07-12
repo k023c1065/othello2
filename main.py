@@ -17,13 +17,18 @@ class main_controler:
             x,y = args.x//90,args.y//90
             if self.try_move(x,y):
                 self.gui.update_board(self.game.board)
-                
+        if self.game.check_winner() !=0:
+            print("Game finished.")
+            print(f"Result:{self.game.get_score()}")
+            return        
         if self.game.turn != self.HUMAN_TURN:
             score,ai_move = self.AI.search(self.game,1,3)
             self.game.apply_move(*ai_move)
             self.gui.update_board(self.game.board)
         if self.game.check_winner() !=0:
-            pass
+            print("Game finished.")
+            print(f"Result:{self.game.get_score()}")
+            return
                 
     def try_move(self,x,y):
         if (x,y) in self.game.get_valid_moves():
