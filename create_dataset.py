@@ -5,6 +5,7 @@ import datetime,pickle
 from modellib import miniResNet,model_class
 from game import minimax_search,ab_search,minimax_search2
 import numpy as np
+import argparse,time
 def play_game(model=None):
     game = othello_class(undo_flg=True)
     data=[]
@@ -33,21 +34,24 @@ def play_game(model=None):
         game.apply_move(x,y)
         data.append((x,y))
     return data,(game.get_score())
-def create_data(num=1000,pos=1):
+def create_data(num=1000,pos=1,time_limit=None):
     dataset=[]
     model_inst = model_class()
+    s_t =time.time()
     for i in tqdm.tqdm(range(num),position=pos):
         data=play_game(model = model_inst)
         dataset.append(data)
+        if (time_limit is not None) and time.time()-s_t > time_limit:
+            break
     return dataset
-def create_dataset(num=1000,proc_num=1):
+def create_dataset(num=1000,proc_num=1,time_limit = None):
     dataset = []
     if proc_num==1:
         dataset = create_data(num)
     else:
         freeze_support()
         pool = multiprocessing.Pool(proc_num,initializer=tqdm.tqdm.set_lock, initargs=(RLock(),))
-        result = pool.starmap(create_data, [(num,i+1) for i in range(proc_num)])
+        result = pool.starmap(create_data, [(num,i+1,time_limit) for i in range(proc_num)])
         pool.close()
         pool.join()
         print("\n"*proc_num)
@@ -56,5 +60,12 @@ def create_dataset(num=1000,proc_num=1):
     with open(f"dataset/data_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.dat","wb") as f:
         pickle.dump(dataset,f)
 if __name__ == "__main__":
-    dataset_num = 1500
-    create_dataset(dataset_num,1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num",type=int,default=200)
+    parser.add_argument("--proc",type=int,default=1)
+    parser.add_argument("--time",type=int,default=None)
+    args = parser.parse_args()
+    dataset_num = args.num
+    proc_num = args.proc
+    time_limit = args.time if args.time>0 else None
+    create_dataset(dataset_num,proc_num,time_limit)

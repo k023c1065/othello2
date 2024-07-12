@@ -24,6 +24,7 @@ class model_class:
         model_files.sort(key=os.path.getmtime)
         if len(model_files)>0:
             model.load_weights(model_files[-1])
+            print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
         return model
     
     def predict(self,x:np.ndarray,training=False,**kwargs):
