@@ -77,6 +77,7 @@ class minimax_search2:
         if self.debug:print("Main search")
         s_t = time.time()
         r = self.main_search(game,my_turn,depth)
+        print(r)
         if self.debug:print(f"Main search time:{time.time()-s_t}")
         return r
     def get_board_hash(self,board):
@@ -122,7 +123,7 @@ class minimax_search2:
                 score = prediction[x][y]
                 if game.turn != my_turn:
                     score = -score
-                #print("--"+f"{x},{y} Score:{score}")
+                if self.debug:print("--"+f"{x},{y} Score:{score}")
                 if score > best_score:
                     best_score = score
                     best_move = move
@@ -134,12 +135,12 @@ class minimax_search2:
                 for move in game.get_valid_moves():
                     x,y=move
                     game.apply_move(x,y)
-                    #print((2-depth)*"-"+f"a {x},{y}")
+                    if self.debug:print((2-depth)*"-"+f"a {x},{y}")
                     score = self.main_search(game,my_turn,depth-1)[0]
                     if score>best_score:
                         best_score = score
                         best_move = move
-                    #print((2-depth)*"-"+f"Score:{score}")
+                    if self.debug:print((2-depth)*"-"+f"Score:{score}")
                     game.undo_move()
                 return best_score,best_move
             else:
@@ -148,11 +149,11 @@ class minimax_search2:
                 for move in game.get_valid_moves():
                     x,y=move
                     game.apply_move(x,y)
-                    #print((2-depth)*"-"+f"b {x},{y}")
+                    if self.debug:print((2-depth)*"-"+f"b {x},{y}")
                     score = self.main_search(game,my_turn,depth-1)[0]
                     if score < best_score:
                         best_score = score
                         best_move = move
-                    #print((2-depth)*"-"+f"Score:{score}")
+                    if self.debug:print((2-depth)*"-"+f"Score:{score}")
                     game.undo_move()
                 return best_score,best_move
