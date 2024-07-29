@@ -46,10 +46,9 @@ if __name__ == "__main__":
     
     gxp.update_model(target_model=target_model,best_model=best_model)
     generation_no = 0
-    exp = []
     while True:
         print(f"generation_no:{generation_no}")
-        score = gxp.create_exp(game_num=64,proc_num=3)
+        score = gxp.create_exp(game_num=64,proc_num=16)
         
         print(f"score:{score[0]/sum(score):3f}")
         if score[0]/sum(score)>=0.55:
@@ -63,6 +62,6 @@ if __name__ == "__main__":
             #target_model=best_model
         gxp.update_model(target_model=target_model,best_model=best_model)
         gxp.join_exp()
-        target_model = trainer.train(target_model,exp)
+        target_model = trainer.train(target_model,gxp)
         print("Training complete")
         
