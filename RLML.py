@@ -6,7 +6,7 @@ import os
 from glob import glob
 import random
 import multiprocessing
-from RLML_trainer import train
+from RLML_trainer import trainer_class
 from tqdm import tqdm
 
 from multiprocessing import Lock
@@ -29,6 +29,7 @@ def get_move(q_result,valid_moves):
 
 if __name__ == "__main__":
     gxp = exp_memory_class(miniResNet(input_shape=(2,8,8),output_dim=64),miniResNet(input_shape=(2,8,8),output_dim=64))
+    trainer = trainer_class()
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
     target_model = miniResNet(input_shape=(2,8,8),output_dim=64)
@@ -60,6 +61,6 @@ if __name__ == "__main__":
             #target_model=best_model
         gxp.update_model(target_model=target_model,best_model=best_model)
         gxp.join_exp()
-        target_model = train(target_model,exp)
+        target_model = trainer.train(target_model,exp)
         print("Training complete")
         
