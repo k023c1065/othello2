@@ -28,6 +28,8 @@ def get_move(q_result,valid_moves):
     
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn', force=True)
+    global tf
     gxp = exp_memory_class(miniResNet(input_shape=(2,8,8),output_dim=64),miniResNet(input_shape=(2,8,8),output_dim=64))
     trainer = trainer_class()
     model_files = glob("model/*.h5")
