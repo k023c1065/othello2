@@ -9,7 +9,7 @@ import tensorflow as tf
 from tqdm import tqdm
 import multiprocessing
 from multiprocessing import Lock
-from get_exp import get_exp_single
+from get_exp import exp_memory_class
 def get_move(q_result,valid_moves):
     q = -100
     move = (-1,-1)
@@ -20,158 +20,9 @@ def get_move(q_result,valid_moves):
     weights = np.exp(weights)/np.exp(weights).sum()
     return random.choices(valid_moves,weights=weights,k=1)[0]
 
-class exp_memory_class:
-    def __init__(self):
-        self.memory = []
-        self.model = [miniResNet(input_shape=(2,8,8),output_dim=64) for _ in range(2)]
-        self.pipes = []
-    def reset(self):
-        self.memory = []
-    def get_exp(self,num=1024):
-        random.shuffle(self.memory)
-        return self.memory[:num]
-    def get_exp(self,game_num=100,proc_num=4):
-        self.pipes = [multiprocessing.Pipe() for _ in range(proc_num)]
-        result_pipe = [multiprocessing.Pipe() for _ in range(proc_num)]
-        tmp_exp = []
-        tmp_score = [0,0]
-        self.processes = [multiprocessing.Process(
-            target=get_exp_single,args=(game_num,self.pipes[i][0],result_pipe[i][0])
-            ) for i in range(proc_num)]
-        for process in self.processes:
-            process.start()
-        self.model_executer(game_num,proc_num)
 
-        for pipe in result_pipe:
-            exp,win_score = pipe[1].recv()
-            tmp_exp += exp
-            tmp_score[0] += win_score[0]
-            tmp_score[1] += win_score[1]
-        if tmp_score[0]/sum(tmp_score)>=0.55:self.memory = []
-        self.memory += exp
-        print(f"Final win_score:{tmp_score}")
-        for process in self.processes:
-            print("Join process")
-            process.join()
-        return tmp_score
-
-    def model_executer(self,num,proc_num):
-        num = 60*num
-        input_x = np.zeros((proc_num,2,8,8))
-        for _ in tqdm(range(num)):
-            for i,pipe in enumerate(self.pipes):
-                #print(f"pipe recv id:{i}")
-                data = pipe[1].recv()
-                input_x[i] = data
-            output = self.model[0](input_x)
-            for i,pipe in enumerate(self.pipes):
-                #print(f"pipe send id:{i}")
-                pipe[1].send(output[i])
-    @staticmethod
-    def get_exp_single(game_num,pipe,result_pipe):
-        exp_memory = []
-        win_score = [0,0]
-        pipe_send_count = 0
-        for _game_num in range(game_num):
-            #print(f"process name:{multiprocessing.current_process().name} Started")
-            game = othello_class()
-            turn = np.random.randint(0,2)
-            turn = [1,-1][turn]
-            game_exp = []
-            while game.check_winner() == 0:
-                valid_moves = game.get_valid_moves()
-                move = (-1,-1)
-                if len(valid_moves)>0:
-                    pipe.send(format_board(game.board))
-                    pipe_send_count += 1
-                    r = pipe.recv()
-                    r = r.numpy().reshape(8,8)
-                    move = get_move(r,valid_moves=valid_moves)
-                else:
-                    move = (-1,-1)
-                game_exp.append((game.board,move,valid_moves))
-                game.apply_move(*move)
-            score = game.get_score()
-            first_win_ratio = score[0]/sum(score)
-            if first_win_ratio**turn>=1:
-                win_score[0]+=1
-            else:
-                win_score[1]+=1
-            turn = 1
-            for exp in game_exp:
-                if len(exp[2])>0:
-                    r = np.zeros((8,8))
-                    selected_move_q = first_win_ratio
-                    if first_win_ratio**(turn) < 1:
-                        selected_move_q = 1-selected_move_q
-                    for move in exp[2]:
-                        if move == exp[1]:
-                            r[move[0]][move[1]] = selected_move_q
-                        else:
-                            r[move[0]][move[1]] = max(1-selected_move_q,0.00001)
-                    r = r/r.sum()
-                    r = r.reshape(64)
-                    #print(format_board(exp[0]).shape)
-                    exp_memory.append(
-                        [format_board(exp[0]),r]
-                    )
-                turn += 1
-            #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
-        for _ in range(60*game_num-pipe_send_count):
-            print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
-            pipe.send(np.empty((2,8,8)))
-            pipe.recv()
-            print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
-        result_pipe.send((exp_memory,win_score))
-        print(f"process name:{multiprocessing.current_process().name} Finished")
-        return exp_memory,win_score
     
-def get_exp(best_model,target_model):
 
-    exp_memory = []
-    win_score = [0,0]
-    game_num =75
-    for _game_num in tqdm(range(game_num)):
-        game = othello_class()
-        turn = np.random.randint(0,2)
-        turn = [1,-1][turn]
-        game_exp = []
-        while game.check_winner() == 0:
-            valid_moves = game.get_valid_moves()
-            move = (-1,-1)
-            if len(valid_moves)>0:
-                if turn == game.turn:
-                    move = get_move(target_model,game.board,valid_moves)
-                else:
-                    move = get_move(best_model,game.board,valid_moves)
-            game_exp.append((game.board,move,valid_moves))
-            game.apply_move(*move)
-        score = game.get_score()
-        first_win_ratio = score[0]/sum(score)
-        if first_win_ratio**turn>=1:
-            win_score[0]+=1
-        else:
-            win_score[1]+=1
-        turn = 1
-        for exp in game_exp:
-            if len(exp[2])>0:
-                r = np.zeros((8,8))
-                selected_move_q = first_win_ratio
-                if first_win_ratio**(turn) < 1:
-                    selected_move_q = 1-selected_move_q
-                for move in exp[2]:
-                    if move == exp[1]:
-                        r[move[0]][move[1]] = selected_move_q
-                    else:
-                        r[move[0]][move[1]] = max(1-selected_move_q,0.00001)
-                r = r/r.sum()
-                r = r.reshape(64)
-                #print(format_board(exp[0]).shape)
-                exp_memory.append(
-                    [format_board(exp[0]),r]
-                )
-            turn += 1
-    return exp_memory,win_score
 class special_MSE:
     def __init__(self):
         pass
@@ -193,15 +44,14 @@ class special_MSE:
         #input("Waiting...")
         return result_mean
         
-def train(model,exp):
+def train(model,gxp:exp_memory_class):
     EPOCH = 20
     loss_object = special_MSE()
     for e in range(EPOCH):
         if e%5==0:
             print("\nDataset shuffle")
             optimizer = tf.keras.optimizers.Adam()
-            random.shuffle(exp)
-            dataset = exp[:min(1024*8,len(exp))]
+            dataset = gxp.get_exp(1024*8)
 
             x,y = [],[]
             for data in dataset:
@@ -244,36 +94,39 @@ def train(model,exp):
     
 
 if __name__ == "__main__":
-    gxp = exp_memory_class()
+    gxp = exp_memory_class(miniResNet(input_shape=(2,8,8),output_dim=64),miniResNet(input_shape=(2,8,8),output_dim=64))
     gxp.get_exp(game_num=64,proc_num=8)
-    input("!!!!W")
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
     target_model = miniResNet(input_shape=(2,8,8),output_dim=64)
     target_model(np.zeros((1,2,8,8)),training=False)
     
-    # #model_filesを更新日時順でソートする
-    # model_files.sort(key=os.path.getmtime)
-    # if len(model_files)>0:
-    #     target_model.load_weights(model_files[-1])
-    #     print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
+    #model_filesを更新日時順でソートする
+    model_files.sort(key=os.path.getmtime)
+    if len(model_files)>0:
+        target_model.load_weights(model_files[-1])
+        print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
     best_model = miniResNet(input_shape=(2,8,8),output_dim=64)
+    
+    gxp.update_model(target_model=target_model,best_model=best_model)
     generation_no = 0
     exp = []
     while True:
         print(f"generation_no:{generation_no}")
-        tmp_exp,score = get_exp(best_model=best_model,target_model=target_model)
+        score = gxp.create_exp(game_num=64,proc_num=8)
         
         print(f"score:{score[0]/sum(score):3f}")
         if score[0]/sum(score)>=0.55:
             print("Updated!")
             if generation_no>0:target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
-            exp = []
+            gxp.reset()
             generation_no +=1
             best_model=target_model
         else:
-            target_model=best_model
-        exp += tmp_exp
+            pass
+            #target_model=best_model
+        gxp.update_model(target_model=target_model,best_model=best_model)
+        gxp.join_exp()
         target_model = train(target_model,exp)
         print("Training complete")
         
