@@ -34,8 +34,9 @@ class exp_memory_class:
         tmp_exp = []
         tmp_score = [0,0]
         self.processes = [multiprocessing.Process(
-            target=self.get_exp_single,args=(game_num,self.pipes[i][0],result_pipe[i][0])
-            ) for i in range(proc_num)]
+            target=self.get_exp_single,
+            args=(game_num,self.pipes[i][0],result_pipe[i][0]),
+            daemon = True) for i in range(proc_num)]
         for process in self.processes:
             process.start()
         self.model_executer(game_num,proc_num)
@@ -117,7 +118,7 @@ class exp_memory_class:
                 if len(exp[2])>0:
                     r = np.zeros((8,8))
                     selected_move_q = first_win_ratio
-                    if first_win_ratio**(turn) < 1:
+                    if turn == -1:
                         selected_move_q = 1-selected_move_q
                     for move in exp[2]:
                         if move == exp[1]:
@@ -130,7 +131,7 @@ class exp_memory_class:
                     exp_memory.append(
                         [format_board(exp[0]),r]
                     )
-                turn += 1
+                turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
             print(f"proc name:{multiprocessing.current_process().name} pipe send empty")

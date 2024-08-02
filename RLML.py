@@ -8,7 +8,7 @@ import random
 import multiprocessing
 from RLML_trainer import trainer_class
 from tqdm import tqdm
-
+import argparse
 from multiprocessing import Lock
 from get_exp import exp_memory_class
 def get_move(q_result,valid_moves):
@@ -24,14 +24,43 @@ def get_move(q_result,valid_moves):
 
     
 
-
-    
+def parse_arg():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--game_num",type=int,default=100)
+    parser.add_argument("--proc_num",type=int,default=4)
+    parser.add_argument("--exp_size",type=int,default=1024*8)
+    parser.add_argument("--patience",type=int,default=3)
+    parser.add_argument("--shuffle_num",type=int,default=5)
+    parser.add_argument("--batch_size",type=int,default=64)
+    parser = parser.parse_args()
+    print(f"""
+          game_num:{parser.game_num}\n
+          proc_num:{parser.proc_num}\n
+          exp_size:{parser.exp_size}\n
+          patience:{parser.patience}\n
+          shuffle_num:{parser.shuffle_num}\n
+          batch_size:{parser.batch_size}\n  
+          
+          """)
+    return {
+        "game_num":parser.game_num,
+        "proc_num":parser.proc_num,
+        "exp_size":parser.exp_size,
+        "patience":parser.patience,
+        "shuffle_num":parser.shuffle_num,
+        "batch_size":parser.batch_size
+    }
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn', force=True)
     global tf
+    arg = parse_arg()
     gxp = exp_memory_class(miniResNet(input_shape=(2,8,8),output_dim=64),miniResNet(input_shape=(2,8,8),output_dim=64))
-    trainer = trainer_class()
+    trainer = trainer_class(
+        patience=arg["patience"],
+        shuffle_num=arg["shuffle_num"],
+        dataset_size=arg["exp_size"]
+    )
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
     target_model = miniResNet(input_shape=(2,8,8),output_dim=64)
@@ -48,7 +77,7 @@ if __name__ == "__main__":
     generation_no = 0
     while True:
         print(f"generation_no:{generation_no}")
-        score = gxp.create_exp(game_num=64,proc_num=16)
+        score = gxp.create_exp(game_num=arg["game_num"],proc_num=arg["proc_num"])
         
         print(f"score:{score[0]/sum(score):3f}")
         if score[0]/sum(score)>=0.55:
