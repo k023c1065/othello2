@@ -79,6 +79,15 @@ class minimax_search2:
         r = self.main_search(game,my_turn,depth)
         print(r)
         if self.debug:print(f"Main search time:{time.time()-s_t}")
+        if self.debug:
+            simple_r = self.model.predict(format_board(game.board)[np.newaxis],verbose=0).reshape(8,8)
+            valid_move = game.get_valid_moves()
+            print("---simple_r---")
+            print(simple_r)
+            for m in valid_move:
+                print(m,simple_r[m[0]][m[1]])
+            print("---simple_r end---")
+            
         return r
     def get_board_hash(self,board):
         a = tuple(board.flatten())
