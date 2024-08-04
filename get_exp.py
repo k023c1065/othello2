@@ -123,7 +123,7 @@ class exp_memory_class:
                     r = r*np.exp(1-selected_move_q)
                     r[exp[1][0]][exp[1][1]] = np.exp(selected_move_q)
                     r = r/(
-                        np.exp(selected_move_q)+np.exp(1-selected_move_q)*(len(exp[2])-1)
+                        np.exp(selected_move_q+(1-selected_move_q)*(len(exp[2])-1))
                     )
                     r = r.reshape(64)
                     #print(format_board(exp[0]).shape)
