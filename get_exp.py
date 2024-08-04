@@ -9,7 +9,7 @@ def get_move(q_result,valid_moves):
     for m in valid_moves:
         weights.append(q_result[move[0]][move[1]])
     weights = np.array(weights)
-    weights = np.exp(weights)/np.exp(weights).sum()
+    weights = np.exp(weights)/np.exp(weights.sum())
     return random.choices(valid_moves,weights=weights,k=1)[0]
     
 class exp_memory_class:
@@ -109,23 +109,22 @@ class exp_memory_class:
                 game.apply_move(*move)
             score = game.get_score()
             first_win_ratio = score[0]/sum(score)
-            if first_win_ratio**turn>=1:
+            if (first_win_ratio>0.5 and turn == 1) or (first_win_ratio<0.5 and turn == -1):
                 win_score[0]+=1
             else:
                 win_score[1]+=1
             turn = 1
             for exp in game_exp:
                 if len(exp[2])>0:
-                    r = np.zeros((8,8))
+                    r = np.ones((8,8))
                     selected_move_q = first_win_ratio
                     if turn == -1:
                         selected_move_q = 1-selected_move_q
-                    for move in exp[2]:
-                        if move == exp[1]:
-                            r[move[0]][move[1]] = selected_move_q
-                        else:
-                            r[move[0]][move[1]] = max(1-selected_move_q,0.00001)
-                    r = r/r.sum()
+                    r = r*np.exp(1-selected_move_q)
+                    r[exp[1][0]][exp[1][1]] = np.exp(selected_move_q)
+                    r = r/(
+                        np.exp(selected_move_q)+np.exp(1-selected_move_q)*(len(exp[2])-1)
+                    )
                     r = r.reshape(64)
                     #print(format_board(exp[0]).shape)
                     exp_memory.append(

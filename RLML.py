@@ -59,7 +59,8 @@ if __name__ == "__main__":
     trainer = trainer_class(
         patience=arg["patience"],
         shuffle_num=arg["shuffle_num"],
-        dataset_size=arg["exp_size"]
+        dataset_size=arg["exp_size"],
+        batch_size=arg["batch_size"]
     )
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
@@ -68,9 +69,9 @@ if __name__ == "__main__":
     
     #model_filesを更新日時順でソートする
     model_files.sort(key=os.path.getmtime)
-    if len(model_files)>0:
-        target_model.load_weights(model_files[-1])
-        print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
+    # if len(model_files)>0:
+    #     target_model.load_weights(model_files[-1])
+    #     print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
     best_model = miniResNet(input_shape=(2,8,8),output_dim=64)
     
     gxp.update_model(target_model=target_model,best_model=best_model)
