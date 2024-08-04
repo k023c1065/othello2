@@ -5,12 +5,13 @@ from tqdm import tqdm
 import random
 
 class trainer_class:
-    def __init__(self,patience=3,shuffle_num=5,dataset_size=1024*8):
+    def __init__(self,patience=3,shuffle_num=5,dataset_size=1024*8,batch_size=64):
         import tensorflow as tf
         self.tf = tf
         self.patience = patience
         self.shuffle_num = shuffle_num
         self.dataset_size = dataset_size
+        self.batch_size = batch_size
     def get_loss(self,y,pred,n):
         # Step 2: Calculate the square of (y - pred)
         #print("y:",y.numpy())
@@ -58,7 +59,7 @@ class trainer_class:
                     (train_x, train_y)
                     )
                 train_ds = train_ds.shuffle(25000,reshuffle_each_iteration=True,seed=random.randint(0,2**32))
-                train_ds = train_ds.batch(batch_size)
+                train_ds = train_ds.batch(self.batch_size)
                 train_ds = train_ds.cache().prefetch(buffer_size=self.tf.data.AUTOTUNE)
                 test_ds = self.tf.data.Dataset.from_tensor_slices(
                     (test_x,test_y)
@@ -101,7 +102,7 @@ class trainer_class:
             test_loss = np.mean(test_loss)
             tqdm_obj.set_description(f"loss:{np.mean(loss_array):.6f} test_loss:{test_loss:.6f}")
             tqdm_obj.close()
-            if len(test_loss_array)>0 and test_loss>test_loss_array[-1]:
+            if len(test_loss_array)>0 and test_loss>=test_loss_array[-1]:
                 fail_count += 1
             else:
                 fail_count = 0
