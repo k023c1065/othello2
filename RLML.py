@@ -26,21 +26,22 @@ def random_model(x):
     return np.ones((x.shape[0],64))
 
 def parse_arg():
+    
     parser = argparse.ArgumentParser()
-    parser.add_argument("--game_num",type=int,default=100)
-    parser.add_argument("--proc_num",type=int,default=4)
-    parser.add_argument("--exp_size",type=int,default=1024*8)
-    parser.add_argument("--patience",type=int,default=3)
-    parser.add_argument("--shuffle_num",type=int,default=5)
-    parser.add_argument("--batch_size",type=int,default=64)
-    parser.add_argument("--epoch",type=int,default=50)  
-    parser.add_argument("--init_model",action="store_true")
-    parser.add_argument("--init_game_num",type=int,default=100)
+    parser.add_argument("--game_num",type=int,default=100,help="Number of games to play")
+    parser.add_argument("--proc_num",type=int,default=multiprocessing.cpu_count(),help="Number of processes to use. When under 1 it will be set to multiprocessing.cpu_count()")
+    parser.add_argument("--exp_size",type=int,default=1024*8,help="Size of experience memory")
+    parser.add_argument("--patience",type=int,default=3,help="Patience for early stopping. If set to 0, it will be set to epoch+1")
+    parser.add_argument("--shuffle_num",type=int,default=5,help="Number of shuffle be done on a traing session")
+    parser.add_argument("--batch_size",type=int,default=64,help="Batch size for training")
+    parser.add_argument("--epoch",type=int,default=50,help="Number of max epoch for training.")  
+    parser.add_argument("--init_model",action="store_true",help="If set, it will start from random model")
+    parser.add_argument("--init_game_num",type=int,default=100,help="Number of games to play for initial model. Will be ignored if init_model is False")
     parser = parser.parse_args()
     print(f"""
           -----------------------------------
           game_num:{parser.game_num}\n
-          proc_num:{parser.proc_num}\n
+          proc_num:{parser.proc_num if parser.proc_num>0 else multiprocessing.cpu_count()}\n
           exp_size:{parser.exp_size}\n
           patience:{parser.patience if parser.patience>0 else parser.epoch+1}\n
           shuffle_num:{parser.shuffle_num}\n
@@ -52,7 +53,7 @@ def parse_arg():
           """)
     return {
         "game_num":parser.game_num,
-        "proc_num":parser.proc_num,
+        "proc_num":parser.proc_num if parser.proc_num>0 else multiprocessing.cpu_count(),
         "exp_size":parser.exp_size,
         "patience":parser.patience if parser.patience>0 else parser.epoch+1,
         "shuffle_num":parser.shuffle_num,
