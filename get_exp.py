@@ -97,6 +97,7 @@ class exp_memory_class:
             game = othello_class()
             turn = np.random.randint(0,2)
             turn = [1,-1][turn]
+            game.turn = turn
             game_exp = []
             while game.check_winner() == 0:
                 valid_moves = game.get_valid_moves()
