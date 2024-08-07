@@ -4,8 +4,8 @@ from glob import glob
 import os
 import functools
 def load_model() -> miniResNet:
-    model = miniResNet(input_shape=(2,8,8),output_dim=64)
-    model(np.zeros((1,2,8,8)),training=False)
+    model = miniResNet(input_shape=(8,2,2),output_dim=64)
+    model(np.zeros((1,8,2,2)),training=False)
     model_files = glob("model/*.h5")
     #model_filesを更新日時順でソートする
     model_files.sort(key=os.path.getmtime)
@@ -17,8 +17,8 @@ class model_class:
         self.model = self.load_model()
         self.pattern = np.array([2**i for i in range(0,8)],dtype="uint8")
     def load_model(self) -> miniResNet:
-        model = miniResNet(input_shape=(2,8,8),output_dim=64)
-        model(np.zeros((1,2,8,8)),training=False)
+        model = miniResNet(input_shape=(8,8,2),output_dim=64)
+        model(np.zeros((1,8,8,2)),training=False)
         model_files = glob("model/*.h5")
         #model_filesを更新日時順でソートする
         model_files.sort(key=os.path.getmtime)

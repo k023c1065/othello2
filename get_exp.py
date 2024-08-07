@@ -47,21 +47,21 @@ class exp_memory_class:
             tmp_score[0] += win_score[0]
             tmp_score[1] += win_score[1]
         if tmp_score[0]/sum(tmp_score)>=0.55:self.memory = []
-        self.memory += exp
+        self.latest_memory = exp
         print(f"Final win_score:{tmp_score}")
         for process in self.processes:
             print("Join process")
             process.join()
         return tmp_score
-
     def model_executer(self,num,proc_num):
         num = 60*num
-        input_x = [np.zeros((proc_num,2,8,8)),np.zeros((proc_num,2,8,8))]
+        input_x = [np.zeros((proc_num,8,8,2)),np.zeros((proc_num,8,8,2))]
         turn2index = {
             -1:0,
             1:1,
         }
-        for _ in tqdm(range(num)):
+        tqdm_iter = tqdm(range(num*proc_num))
+        for _ in range(num):
             turn_data = []
             model_flg =[False,False]
             for i,pipe in enumerate(self.pipes):
@@ -75,12 +75,17 @@ class exp_memory_class:
             output = [None,None]
             if model_flg[0]:
                 output[0] = self.model[0](input_x[0])
+                if not isinstance(output[0],np.ndarray):
+                    output[0] = output[0].numpy()
             if model_flg[1]:
                 output[1] = self.model[1](input_x[1])
+                if not isinstance(output[1],np.ndarray):
+                    output[1] = output[1].numpy()
             for i,pipe in enumerate(self.pipes):
                 #print(f"pipe send id:{i}")
                 turn = turn_data[i]
                 pipe[1].send(output[turn][i])
+            tqdm_iter.update(proc_num)
     @staticmethod
     def get_exp_single(game_num,pipe,result_pipe):
         exp_memory = []
@@ -100,7 +105,7 @@ class exp_memory_class:
                     pipe.send((game.turn,format_board(game.board)))
                     pipe_send_count += 1
                     r = pipe.recv()
-                    r = r.numpy().reshape(8,8)
+                    r = r.reshape(8,8)
                     move = get_move(r,valid_moves=valid_moves)
                 else:
                     this_skip_count += 1
@@ -116,25 +121,27 @@ class exp_memory_class:
             turn = 1
             for exp in game_exp:
                 if len(exp[2])>0:
-                    r = np.ones((8,8))
+                    r = np.zeros((8,8))
                     selected_move_q = first_win_ratio
                     if turn == -1:
                         selected_move_q = 1-selected_move_q
-                    r = r*np.exp(1-selected_move_q)
-                    r[exp[1][0]][exp[1][1]] = np.exp(selected_move_q)
-                    r = r/(
-                        np.exp(selected_move_q+(1-selected_move_q)*(len(exp[2])-1))
-                    )
-                    r = r.reshape(64)
-                    #print(format_board(exp[0]).shape)
-                    exp_memory.append(
-                        [format_board(exp[0]),r]
-                    )
+                    if selected_move_q >0.5:
+                        for move in exp[2]:
+                            if move == exp[1]:
+                                r[move[0]][move[1]] = 1
+                            else:
+                                r[move[0]][move[1]] = 0.0001
+                        #r = np.exp(r)/np.exp(r).sum()
+                        r = r/np.sum(r)
+                        r = r.reshape(64)
+                        exp_memory.append(
+                            [format_board(exp[0]),r]
+                        )
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
             print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
-            pipe.send((1,np.empty((2,8,8))))
+            pipe.send((1,np.empty((8,8,2))))
             pipe.recv()
             print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))

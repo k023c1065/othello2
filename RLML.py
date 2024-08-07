@@ -22,7 +22,8 @@ def get_move(q_result,valid_moves):
     return random.choices(valid_moves,weights=weights,k=1)[0]
 
 
-    
+def random_model(x):
+    return np.ones((x.shape[0],64))
 
 def parse_arg():
     parser = argparse.ArgumentParser()
@@ -32,54 +33,74 @@ def parse_arg():
     parser.add_argument("--patience",type=int,default=3)
     parser.add_argument("--shuffle_num",type=int,default=5)
     parser.add_argument("--batch_size",type=int,default=64)
+    parser.add_argument("--epoch",type=int,default=50)  
+    parser.add_argument("--init_model",action="store_true")
+    parser.add_argument("--init_game_num",type=int,default=100)
+    parser.add_argument("--help",action="store_true")
     parser = parser.parse_args()
+    if parser.help:
+        parser.print_help()
     print(f"""
+          -----------------------------------
           game_num:{parser.game_num}\n
           proc_num:{parser.proc_num}\n
           exp_size:{parser.exp_size}\n
           patience:{parser.patience}\n
           shuffle_num:{parser.shuffle_num}\n
           batch_size:{parser.batch_size}\n  
-          
+          epoch:{parser.epoch}\n
+          init_model:{parser.init_model}\n
+          init_game_num:{parser.init_game_num}
+          -----------------------------------
           """)
     return {
         "game_num":parser.game_num,
         "proc_num":parser.proc_num,
         "exp_size":parser.exp_size,
-        "patience":parser.patience,
+        "patience":parser.patience if parser.patience>0 else parser.epoch+1,
         "shuffle_num":parser.shuffle_num,
-        "batch_size":parser.batch_size
+        "batch_size":parser.batch_size,
+        "epoch":parser.epoch,
+        "init_model":parser.init_model,
+        "init_game_num":parser.init_game_num,
     }
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn', force=True)
     global tf
     arg = parse_arg()
-    gxp = exp_memory_class(miniResNet(input_shape=(2,8,8),output_dim=64),miniResNet(input_shape=(2,8,8),output_dim=64))
+    gxp = exp_memory_class(miniResNet(input_shape=(8,8,2),output_dim=64),miniResNet(input_shape=(8,8,2),output_dim=64))
     trainer = trainer_class(
         patience=arg["patience"],
         shuffle_num=arg["shuffle_num"],
         dataset_size=arg["exp_size"],
-        batch_size=arg["batch_size"]
+        batch_size=arg["batch_size"],
+        epoch=arg["epoch"],
     )
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
-    target_model = miniResNet(input_shape=(2,8,8),output_dim=64)
-    target_model(np.zeros((1,2,8,8)),training=False)
+    target_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=7)
+    target_model(np.zeros((1,8,8,2)),training=False)
     
     #model_filesを更新日時順でソートする
     model_files.sort(key=os.path.getmtime)
-    # if len(model_files)>0:
-    #     target_model.load_weights(model_files[-1])
-    #     print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
-    best_model = miniResNet(input_shape=(2,8,8),output_dim=64)
+    if len(model_files)>0 and (not arg["init_model"]):
+        target_model.load_weights(model_files[-1])
+        print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
+    best_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=7)
     
     gxp.update_model(target_model=target_model,best_model=best_model)
+    if arg["init_model"]:
+        gxp.update_model(target_model=random_model,best_model=random_model)
     generation_no = 0
+    game_num  = arg["init_game_num"] if arg["init_model"] else arg["game_num"]
     while True:
         print(f"generation_no:{generation_no}")
-        score = gxp.create_exp(game_num=arg["game_num"],proc_num=arg["proc_num"])
-        
+        score = gxp.create_exp(game_num=game_num,proc_num=arg["proc_num"])
+        if arg["init_model"]:
+            game_num = arg["game_num"]
+            arg["init_model"] = False
+        #print(gxp.latest_memory[:2])
         print(f"score:{score[0]/sum(score):3f}")
         if score[0]/sum(score)>=0.55:
             print("Updated!")
@@ -90,6 +111,7 @@ if __name__ == "__main__":
         else:
             pass
             #target_model=best_model
+        gxp.join_exp()
         gxp.update_model(target_model=target_model,best_model=best_model)
         gxp.join_exp()
         target_model = trainer.train(target_model,gxp)
