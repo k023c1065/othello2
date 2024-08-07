@@ -29,7 +29,7 @@ class model_class:
     
     def predict(self,x:np.ndarray,training=False,**kwargs):
         #x = hashable_board(x)
-        return self._predict(x,training)
+        return self._predict(x,training=training)
     
     #@functools.lru_cache(maxsize=512)
     def _predict(self,x,training=False):
