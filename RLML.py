@@ -36,10 +36,7 @@ def parse_arg():
     parser.add_argument("--epoch",type=int,default=50)  
     parser.add_argument("--init_model",action="store_true")
     parser.add_argument("--init_game_num",type=int,default=100)
-    parser.add_argument("--help",action="store_true")
     parser = parser.parse_args()
-    if parser.help:
-        parser.print_help()
     print(f"""
           -----------------------------------
           game_num:{parser.game_num}\n
