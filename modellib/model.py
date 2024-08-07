@@ -39,9 +39,9 @@ class Res_Block(tf.keras.Model):
             return lambda x: x
 
     def call(self, x, training):
-        out1 = self.conv1(self.av1(self.bn1(x, training)))
-        out2 = self.conv2(self.av2(self.bn2(out1, training)))
-        out3 = self.conv3(self.av3(self.bn3(out2, training)))
+        out1 = self.conv1(self.av1(self.bn1(x, training=training)))
+        out2 = self.conv2(self.av2(self.bn2(out1, training=training)))
+        out3 = self.conv3(self.av3(self.bn3(out2, training=training)))
         shortcut = self.shortcut(x)
         out4 = self.add([out3, shortcut])
         return out4
@@ -72,13 +72,13 @@ class miniResNet(tf.keras.Model):
         for layer in self._kl:
             if isinstance(layer, list):
                 for _layer in layer:
-                    x = _layer(x, training)
+                    x = _layer(x, training=training)
                     if isDebug:
                         print(_layer.name, x.shape, np.min(np.array(x)), np.max(
                             np.array(x)), np.mean(np.array(x)), np.std(np.array(x)))
             else:
                 if type(layer) == kl.BatchNormalization:
-                    x = layer(x, training)
+                    x = layer(x, training=training)
                     if isDebug:
                         print(layer.name, x.shape, np.min(np.array(x)), np.max(
                             np.array(x)), np.mean(np.array(x)), np.std(np.array(x)))
