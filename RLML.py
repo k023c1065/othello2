@@ -45,7 +45,7 @@ def parse_arg():
           game_num:{parser.game_num}\n
           proc_num:{parser.proc_num}\n
           exp_size:{parser.exp_size}\n
-          patience:{parser.patience}\n
+          patience:{parser.patience if parser.patience>0 else parser.epoch+1}\n
           shuffle_num:{parser.shuffle_num}\n
           batch_size:{parser.batch_size}\n  
           epoch:{parser.epoch}\n
