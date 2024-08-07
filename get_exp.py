@@ -57,8 +57,8 @@ class exp_memory_class:
         num = 60*num
         input_x = [np.zeros((proc_num,8,8,2)),np.zeros((proc_num,8,8,2))]
         turn2index = {
-            -1:0,
-            1:1,
+            1:0,
+            -1:1,
         }
         tqdm_iter = tqdm(range(num*proc_num))
         for _ in range(num):
