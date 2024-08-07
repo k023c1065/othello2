@@ -47,11 +47,12 @@ class exp_memory_class:
             tmp_score[0] += win_score[0]
             tmp_score[1] += win_score[1]
         if tmp_score[0]/sum(tmp_score)>=0.55:self.memory = []
-        self.latest_memory = exp
+        self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
         for process in self.processes:
             print("Join process")
             process.join()
+        
         return tmp_score
     def model_executer(self,num,proc_num):
         num = 60*num
@@ -88,6 +89,7 @@ class exp_memory_class:
             tqdm_iter.update(proc_num)
     @staticmethod
     def get_exp_single(game_num,pipe,result_pipe):
+        print(f"Proc name:{multiprocessing.current_process().name} Starting")
         exp_memory = []
         win_score = [0,0]
         pipe_send_count = 0
@@ -141,10 +143,10 @@ class exp_memory_class:
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
-            print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
+            #print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
             pipe.send((1,np.empty((8,8,2))))
             pipe.recv()
-            print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
+            #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))
         print(f"process name:{multiprocessing.current_process().name} Finished")
         return exp_memory,win_score
