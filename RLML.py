@@ -62,7 +62,8 @@ def parse_arg():
         "init_game_num":parser.init_game_num,
     }
 
-if __name__ == "__main__":
+
+def main():
     multiprocessing.set_start_method('spawn', force=True)
     global tf
     arg = parse_arg()
@@ -114,3 +115,5 @@ if __name__ == "__main__":
         target_model = trainer.train(target_model,gxp)
         print("Training complete")
         
+if __name__ == "__main__":
+    main()
