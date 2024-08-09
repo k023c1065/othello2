@@ -2,6 +2,7 @@ import numpy as np
 from game import format_board,othello_class
 import random,multiprocessing,time
 from tqdm import tqdm
+import random
 def get_move(q_result,valid_moves):
     q = -100
     move = (-1,-1)
@@ -99,15 +100,16 @@ class exp_memory_class:
         for _game_num in range(game_num):
             #print(f"process name:{multiprocessing.current_process().name} Started")
             game = othello_class()
-            turn = np.random.randint(0,2)
-            turn = [1,-1][turn]
-            game.turn = turn
+            random.seed(time.time())
+            random.seed(random.randint(0,2**32))
+            turn = random.choice([1,-1])
             game_exp = []
             while game.check_winner() == 0:
                 valid_moves = game.get_valid_moves()
                 move = (-1,-1)
                 if len(valid_moves)>0:
-                    pipe.send((game.turn,format_board(game.board)))
+                    this_turn = game.turn if turn == 1 else -game.turn
+                    pipe.send((this_turn,format_board(game.board)))
                     pipe_send_count += 1
                     r = pipe.recv()
                     r = r.reshape(8,8)
@@ -119,10 +121,11 @@ class exp_memory_class:
                 game.apply_move(*move)
             score = game.get_score()
             first_win_ratio = score[0]/sum(score)
-            if (first_win_ratio>0.5 and turn == 1) or (first_win_ratio<0.5 and turn == -1):
+            if (score[0]>score[1] and turn == 1) or (score[0]<score[1] and turn == -1):
                 win_score[0]+=1
-            else:
+            elif (score[0]>score[1] and turn == -1) or (score[0]<score[1] and turn == 1):
                 win_score[1]+=1
+            #print(win_score)
             turn = 1
             for exp in game_exp:
                 if len(exp[2])>0:
@@ -151,4 +154,5 @@ class exp_memory_class:
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))
         print(f"process name:{multiprocessing.current_process().name} Finished")
+        print(f"process name:{multiprocessing.current_process().name} win score:{win_score[0]}vs{win_score[1]}")
         return exp_memory,win_score
