@@ -55,7 +55,7 @@ class trainer_class:
                 # training=True is only needed if there are layers with different
                 # behavior during training versus inference (e.g. Dropout).
                 predictions = model(x, training=True)
-                loss = self.get_loss(y, predictions)
+                loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(
                 zip(gradients, model.trainable_variables)
