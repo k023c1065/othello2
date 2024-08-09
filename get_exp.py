@@ -1,6 +1,6 @@
 import numpy as np
 from game import format_board,othello_class
-import random,multiprocessing
+import random,multiprocessing,time
 from tqdm import tqdm
 def get_move(q_result,valid_moves):
     q = -100
@@ -24,6 +24,7 @@ class exp_memory_class:
         self.memory = []
     def get_exp(self,num=1024):
         random.shuffle(self.memory)
+        if min(len(self.memory),num)<num:print("Warning: Memory is not enough") 
         return self.memory[:min(len(self.memory),num)]
     def join_exp(self):
         self.memory += self.latest_memory
@@ -46,7 +47,7 @@ class exp_memory_class:
             tmp_exp += exp
             tmp_score[0] += win_score[0]
             tmp_score[1] += win_score[1]
-        if tmp_score[0]/sum(tmp_score)>=0.55:self.memory = []
+            
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
         for process in self.processes:
@@ -94,6 +95,7 @@ class exp_memory_class:
         win_score = [0,0]
         pipe_send_count = 0
         this_skip_count = 0
+        
         for _game_num in range(game_num):
             #print(f"process name:{multiprocessing.current_process().name} Started")
             game = othello_class()
