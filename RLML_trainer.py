@@ -70,6 +70,7 @@ class trainer_class:
         best_model = None
         epoch = 0
         loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
+        model.summary()
         while True:
             epoch += 1
             if do_shuffle:
