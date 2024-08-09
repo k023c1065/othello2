@@ -110,37 +110,41 @@ class trainer_class:
             tqdm_obj = tqdm(range(len(train_ds)))
             acc_array = []
             rand_acc_array = []
-            for x,y in train_ds:
-                loss_array = []
-                poss_move = (y.numpy()/(y.numpy()+1e-30)).astype("float32")
-                # with self.tf.GradientTape() as tape:
-                #     # training=True is only needed if there are layers with different
-                #     # behavior during training versus inference (e.g. Dropout).
-                #     predictions = model(x, training=True)
+            try:
+                for x,y in train_ds:
+                    loss_array = []
+                    poss_move = (y.numpy()/(y.numpy()+1e-30)).astype("float32")
+                    # with self.tf.GradientTape() as tape:
+                    #     # training=True is only needed if there are layers with different
+                    #     # behavior during training versus inference (e.g. Dropout).
+                    #     predictions = model(x, training=True)
 
-                #     #clipped = tf.clip_by_value(poss_move,1e-10,1.0)
+                    #     #clipped = tf.clip_by_value(poss_move,1e-10,1.0)
 
-                #     # loss = self.get_loss(
-                #     #     y
-                #     #     ,self.tf.clip_by_value(predictions,1e-20,1.0) #Avoid log(0)
-                #     #     ,poss_move
-                #     #     )
-                #     loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
-                #     #print(f"y:{y*poss_move}\n pred:{predictions*poss_move}\n poss_move:{poss_move}")
-                #     #input("Waiting...")
-                loss,predictions = train_step(x,y)
-                acc = (np.argmax(predictions*poss_move,axis=1)==np.argmax(y*poss_move,axis=1))
-                acc_array += acc.tolist()
-                rand_acc_array += (1/(self.tf.reduce_sum(poss_move,axis=1).numpy())).tolist()
-                # gradients = tape.gradient(loss, model.trainable_variables)
-                # # print(f"grad:{gradients}")
-                # # input("Waiting...")
-                # optimizer.apply_gradients(
-                #         zip(gradients, model.trainable_variables)
-                #         )
-                loss_array.append(loss.numpy())
-                tqdm_obj.update(1)
-                tqdm_obj.set_description(f"epoch: {epoch} loss:{np.mean(loss_array):.6f} train_acc:{np.mean(acc_array):.4f} rand_acc:{np.mean(rand_acc_array):.4f}")
+                    #     # loss = self.get_loss(
+                    #     #     y
+                    #     #     ,self.tf.clip_by_value(predictions,1e-20,1.0) #Avoid log(0)
+                    #     #     ,poss_move
+                    #     #     )
+                    #     loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
+                    #     #print(f"y:{y*poss_move}\n pred:{predictions*poss_move}\n poss_move:{poss_move}")
+                    #     #input("Waiting...")
+                    loss,predictions = train_step(x,y)
+                    acc = (np.argmax(predictions*poss_move,axis=1)==np.argmax(y*poss_move,axis=1))
+                    acc_array += acc.tolist()
+                    rand_acc_array += (1/(self.tf.reduce_sum(poss_move,axis=1).numpy())).tolist()
+                    # gradients = tape.gradient(loss, model.trainable_variables)
+                    # # print(f"grad:{gradients}")
+                    # # input("Waiting...")
+                    # optimizer.apply_gradients(
+                    #         zip(gradients, model.trainable_variables)
+                    #         )
+                    loss_array.append(loss.numpy())
+                    tqdm_obj.update(1)
+                    tqdm_obj.set_description(f"epoch: {epoch} loss:{np.mean(loss_array):.6f} train_acc:{np.mean(acc_array):.4f} rand_acc:{np.mean(rand_acc_array):.4f}")
+            except KeyboardInterrupt:
+                print("Interrupted")
+                do_shuffle = True
             #print(f"prediction:{predictions[0].numpy()*poss_move}\n y:{y[0].numpy()}\n poss_move:{poss_move[0]}")
            # input("Waiting...")
             test_loss = []
