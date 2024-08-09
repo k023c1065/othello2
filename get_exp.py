@@ -38,7 +38,8 @@ class exp_memory_class:
         self.processes = [multiprocessing.Process(
             target=self.get_exp_single,
             args=(game_num,self.pipes[i][0],result_pipe[i][0]),
-            daemon = True) for i in range(proc_num)]
+            daemon = True
+            ) for i in range(proc_num)]
         for process in self.processes:
             process.start()
         self.model_executer(game_num,proc_num)
@@ -54,6 +55,7 @@ class exp_memory_class:
         for process in self.processes:
             print("Join process")
             process.join()
+            process.close()
         
         return tmp_score
     def model_executer(self,num,proc_num):
