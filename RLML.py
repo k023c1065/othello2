@@ -91,6 +91,7 @@ def main():
     gxp.update_model(target_model=target_model,best_model=best_model)
     if arg["init_model"]:
         gxp.update_model(target_model=random_model,best_model=random_model)
+    best_model = random_model
     generation_no = 0
     game_num  = arg["init_game_num"] if arg["init_model"] else arg["game_num"]
     while True:
@@ -111,10 +112,10 @@ def main():
             pass
             #target_model=best_model
         gxp.join_exp()
-        gxp.update_model(target_model=target_model,best_model=best_model)
-        gxp.join_exp()
         target_model = trainer.train(target_model,gxp)
         print("Training complete")
+        
+        gxp.update_model(target_model=target_model,best_model=best_model)
         
 if __name__ == "__main__":
     main()
