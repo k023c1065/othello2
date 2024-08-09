@@ -70,6 +70,7 @@ class trainer_class:
         best_model = None
         epoch = 0
         loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
+        optimizer = self.tf.keras.optimizers.Adam()
         model.summary()
         while True:
             epoch += 1
@@ -77,7 +78,7 @@ class trainer_class:
                 shuffle_num+=1
                 epoch = 0
                 print("\nDataset shuffle")
-                optimizer = self.tf.keras.optimizers.Adam()
+                
                 dataset = gxp.get_exp(self.dataset_size)
                 test_loss_array = []
                 fail_count = 0  
@@ -87,6 +88,13 @@ class trainer_class:
                     y.append(data[1])
                 x = np.array(x,dtype="float32")
                 y = np.array(y,dtype="float32")
+                #Describe the data
+                print("------Data Description------")
+                print(f"x mean:{x.mean()} std:{x.std()} max:{x.max()} min:{x.min()}")
+                print(f"y mean:{y.mean()} std:{y.std()} max:{y.max()} min:{y.min()}")
+                print(f"y mean:{y.mean(axis=0).reshape(8,8)}")
+                print(f"y std:{y.std(axis=0).reshape(8,8)}")
+                print("----------------------------")
                 train_x,test_x,train_y,test_y = train_test_split(x,y)
                 batch_size=64
                 train_ds =  self.tf.data.Dataset.from_tensor_slices(
@@ -146,7 +154,7 @@ class trainer_class:
                 #     ,self.tf.clip_by_value(predictions,1e-20,1.0) #Avoid log(0)
                 #     ,poss_move
                 #     )
-                loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
+                loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
                 
                 max_arg_predictions = np.argmax(predictions*poss_move,axis=1)
                 max_arg_y = np.argmax(y*poss_move,axis=1)
