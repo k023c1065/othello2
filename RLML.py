@@ -104,12 +104,12 @@ def main():
         print(f"score:{score[0]/sum(score):3f}")
         if score[0]/sum(score)>=0.55:
             print("Updated!")
-            if generation_no>0:target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
             gxp.reset()
             generation_no +=1
             best_model=target_model
         else:
             pass
+        target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
             #target_model=best_model
         gxp.join_exp()
         target_model = trainer.train(target_model,gxp)
