@@ -44,10 +44,7 @@ class exp_memory_class:
             process.start()
         self.model_executer(game_num,proc_num)
 
-        for process in self.processes:
-            print("Join process")
-            process.join()
-            process.close()
+        
             
         for pipe in result_pipe:
             exp,win_score = pipe[1].recv()
@@ -57,7 +54,10 @@ class exp_memory_class:
         
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
-
+        for process in self.processes:
+            print("Join process")
+            process.join()
+            process.close()
         for pipe in self.pipes:
             
             pipe[0].close()
