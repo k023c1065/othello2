@@ -56,7 +56,10 @@ class exp_memory_class:
             print("Join process")
             process.join()
             process.close()
-        
+        for pipe in self.pipes:
+            pipe[0].close()
+            pipe[1].close()
+        self.pipes = []
         return tmp_score
     def model_executer(self,num,proc_num):
         num = 60*num
