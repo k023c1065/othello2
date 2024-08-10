@@ -63,9 +63,7 @@ class exp_memory_class:
         for pipe in self.pipes:
             pipe[0].close()
             pipe[1].close()
-        for pipe in result_pipe:
-            pipe[0].close()
-            pipe[1].close()
+
         
         self.pipes = []
 
@@ -167,6 +165,7 @@ class exp_memory_class:
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))
+        result_pipe.close()
         print(f"process name:{multiprocessing.current_process().name} Finished")
         print(f"process name:{multiprocessing.current_process().name} win score:{win_score[0]}vs{win_score[1]}")
         return exp_memory,win_score
