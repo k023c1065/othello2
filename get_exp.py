@@ -52,10 +52,7 @@ class exp_memory_class:
         
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
-        for process in self.processes:
-            print("Join process")
-            process.join()
-            process.close()
+
         for pipe in self.pipes:
             
             pipe[0].close()
@@ -69,6 +66,10 @@ class exp_memory_class:
             del pipe[1]
         
         self.pipes = []
+        for process in self.processes:
+            print("Join process")
+            process.join()
+            process.close()
         return tmp_score
     def model_executer(self,num,proc_num):
         num = 60*num
@@ -167,8 +168,6 @@ class exp_memory_class:
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))
-        while result_pipe.poll():
-            pass
         print(f"process name:{multiprocessing.current_process().name} Finished")
         print(f"process name:{multiprocessing.current_process().name} win score:{win_score[0]}vs{win_score[1]}")
         return exp_memory,win_score
