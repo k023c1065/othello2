@@ -69,6 +69,7 @@ class exp_memory_class:
         for process in self.processes:
             print("Join process")
             process.join()
+            input()
             process.close()
         return tmp_score
     def model_executer(self,num,proc_num):
