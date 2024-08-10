@@ -70,13 +70,16 @@ class trainer_class:
         best_model = None
         epoch = 0
         loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
-        optimizer = self.tf.keras.optimizers.Adam()
+        # loss_obj = self.tf.keras.losses.MeanSquaredError()
+        # loss_obj = self.tf.keras.losses.MeanAbsoluteError()
+        
         model.summary()
         while True:
             epoch += 1
             if do_shuffle:
                 shuffle_num+=1
                 epoch = 0
+                optimizer = self.tf.keras.optimizers.Adam()
                 print("\nDataset shuffle")
                 
                 dataset = gxp.get_exp(self.dataset_size)
