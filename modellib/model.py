@@ -58,7 +58,7 @@ class miniResNet(tf.keras.Model):
                       padding="same", activation="relu"),
             [Res_Block(256, 256) for _ in range(layer_num)],
             kl.GlobalAveragePooling2D(),
-            kl.Dense(512, activation="relu"),
+            #kl.Dense(512, activation="relu"),
             kl.Dense(output_dim, activation="softmax")
         ]
 
