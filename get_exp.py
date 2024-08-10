@@ -58,7 +58,15 @@ class exp_memory_class:
             process.close()
         for pipe in self.pipes:
             pipe[0].close()
+            del pipe[0]
             pipe[1].close()
+            del pipe[1]
+        for pipe in result_pipe:
+            pipe[0].close()
+            del pipe[0]
+            pipe[1].close()
+            del pipe[1]
+        
         self.pipes = []
         return tmp_score
     def model_executer(self,num,proc_num):
@@ -138,12 +146,12 @@ class exp_memory_class:
                     selected_move_q = first_win_ratio
                     if turn == -1:
                         selected_move_q = 1-selected_move_q
-                    if selected_move_q >0.5:
+                    if True or selected_move_q >0.5:
                         for move in exp[2]:
                             if move == exp[1]:
-                                r[move[0]][move[1]] = 1
+                                r[move[0]][move[1]] = selected_move_q
                             else:
-                                r[move[0]][move[1]] = 0.0001
+                                r[move[0]][move[1]] = 1 - selected_move_q
                         #r = np.exp(r)/np.exp(r).sum()
                         r = r/np.sum(r)
                         r = r.reshape(64)
