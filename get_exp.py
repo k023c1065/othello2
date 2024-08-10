@@ -49,7 +49,7 @@ class exp_memory_class:
             tmp_exp += exp
             tmp_score[0] += win_score[0]
             tmp_score[1] += win_score[1]
-            
+        
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
         for process in self.processes:
@@ -57,6 +57,7 @@ class exp_memory_class:
             process.join()
             process.close()
         for pipe in self.pipes:
+            
             pipe[0].close()
             del pipe[0]
             pipe[1].close()
@@ -166,6 +167,8 @@ class exp_memory_class:
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         result_pipe.send((exp_memory,win_score))
+        while result_pipe.poll():
+            pass
         print(f"process name:{multiprocessing.current_process().name} Finished")
         print(f"process name:{multiprocessing.current_process().name} win score:{win_score[0]}vs{win_score[1]}")
         return exp_memory,win_score
