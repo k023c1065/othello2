@@ -47,6 +47,8 @@ class exp_memory_class:
         
             
         for pipe in result_pipe:
+            while not pipe[1].poll():
+                pass
             exp,win_score = pipe[1].recv()
             tmp_exp += exp
             tmp_score[0] += win_score[0]
@@ -59,16 +61,11 @@ class exp_memory_class:
             process.join()
             process.close()
         for pipe in self.pipes:
-            
             pipe[0].close()
-            del pipe[0]
             pipe[1].close()
-            del pipe[1]
         for pipe in result_pipe:
             pipe[0].close()
-            del pipe[0]
             pipe[1].close()
-            del pipe[1]
         
         self.pipes = []
 
