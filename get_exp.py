@@ -53,17 +53,17 @@ class exp_memory_class:
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
 
-        for pipe in self.pipes:
+        # for pipe in self.pipes:
             
-            pipe[0].close()
-            del pipe[0]
-            pipe[1].close()
-            del pipe[1]
-        for pipe in result_pipe:
-            pipe[0].close()
-            del pipe[0]
-            pipe[1].close()
-            del pipe[1]
+        #     pipe[0].close()
+        #     del pipe[0]
+        #     pipe[1].close()
+        #     del pipe[1]
+        # for pipe in result_pipe:
+        #     pipe[0].close()
+        #     del pipe[0]
+        #     pipe[1].close()
+        #     del pipe[1]
         
         self.pipes = []
         for process in self.processes:
