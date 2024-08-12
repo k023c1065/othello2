@@ -81,7 +81,7 @@ class trainer_class:
                 epoch = 0
                 optimizer = self.tf.keras.optimizers.Adam()
                 print("\nDataset shuffle")
-                
+                print(f"shuffle_num:{shuffle_num}")
                 dataset = gxp.get_exp(self.dataset_size)
                 test_loss_array = []
                 fail_count = 0  
@@ -95,8 +95,8 @@ class trainer_class:
                 print("------Data Description------")
                 print(f"x mean:{x.mean()} std:{x.std()} max:{x.max()} min:{x.min()}")
                 print(f"y mean:{y.mean()} std:{y.std()} max:{y.max()} min:{y.min()}")
-                print(f"y mean:{y.mean(axis=0).reshape(8,8)}")
-                print(f"y std:{y.std(axis=0).reshape(8,8)}")
+                # print(f"y mean:{y.mean(axis=0).reshape(8,8)}")
+                # print(f"y std:{y.std(axis=0).reshape(8,8)}")
                 print("----------------------------")
                 train_x,test_x,train_y,test_y = train_test_split(x,y)
                 batch_size=64
