@@ -152,11 +152,27 @@ class exp_memory_class:
                             else:
                                 r[move[0]][move[1]] = 1 - selected_move_q
                         #r = np.exp(r)/np.exp(r).sum()
-                        r = r/np.sum(r)
-                        r = r.reshape(64)
-                        exp_memory.append(
-                            [format_board(exp[0]),r]
-                        )
+                        if np.sum(r)>0:
+                            r = r/np.sum(r)
+                            exp_memory.append(
+                                [format_board(exp[0]),r.reshape(64)]
+                            )
+                            #Data Augmentation
+                            exp_memory.append(
+                                [format_board(np.rot90(exp[0],1)),np.rot90(r,1).reshape(64)]
+                            )
+                            exp_memory.append(
+                                [format_board(np.rot90(exp[0],2)),np.rot90(r,2).reshape(64)]
+                            )
+                            exp_memory.append(
+                                [format_board(np.rot90(exp[0],3)),np.rot90(r,3).reshape(64)]
+                            )
+                            exp_memory.append(
+                                [format_board(np.flipud(exp[0])),np.flipud(r).reshape(64)]
+                            )
+                            exp_memory.append(
+                                [format_board(np.fliplr(exp[0])),np.fliplr(r).reshape(64)]
+                            )
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
