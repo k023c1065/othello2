@@ -78,7 +78,7 @@ def main():
     )
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
-    target_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=6)
+    target_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=8)
     target_model(np.zeros((1,8,8,2)),training=False)
     
     #model_filesを更新日時順でソートする
@@ -86,7 +86,7 @@ def main():
     if len(model_files)>0 and (not arg["init_model"]):
         target_model.load_weights(model_files[-1])
         print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
-    best_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=6)
+    best_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=8)
     
     gxp.update_model(target_model=target_model,best_model=best_model)
     if arg["init_model"]:
@@ -115,7 +115,7 @@ def main():
         target_model = trainer.train(target_model,gxp)
         print("Training complete")
         
-        gxp.update_model(target_model=target_model,best_model=best_model)
+        gxp.update_model(target_model=target_model,best_model=target_model)
         
 if __name__ == "__main__":
     main()
