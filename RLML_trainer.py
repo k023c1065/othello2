@@ -115,7 +115,7 @@ class trainer_class:
             rand_acc_array = []
             try:
                 loss_array = []
-                train_ds = train_ds.shuffle(25000,reshuffle_each_iteration=True,seed=random.randint(0,2**32))
+                #train_ds = train_ds.shuffle(25000,reshuffle_each_iteration=True,seed=random.randint(0,2**32))
                 for x,y in train_ds:
                     poss_move = (y.numpy()/(y.numpy()+1e-30)).astype("float32")
                     loss,predictions = train_step(x,y)
