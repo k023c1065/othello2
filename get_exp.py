@@ -45,17 +45,21 @@ class exp_memory_class:
         self.model_executer(game_num,proc_num)
 
         
-            
+        order_win=[0,0] 
         for pipe in result_pipe:
             while not pipe[1].poll():
                 pass
             exp,win_score = pipe[1].recv()
             tmp_exp += exp
-            tmp_score[0] += win_score[0]
-            tmp_score[1] += win_score[1]
+            tmp_score[0] += np.sum(win_score[0])
+            tmp_score[1] += np.sum(win_score[1])
+            
+            order_win[0] += np.sum(win_score,axis=0)[0]
+            order_win[1] += np.sum(win_score,axis=0)[1]
         
         self.latest_memory = tmp_exp
         print(f"Final win_score:{tmp_score}")
+        print(f"Final Order win_score:{order_win}")
         for process in self.processes:
             print("Join process")
             process.join()
@@ -105,7 +109,7 @@ class exp_memory_class:
     def get_exp_single(game_num,pipe,result_pipe):
         print(f"Proc name:{multiprocessing.current_process().name} Starting")
         exp_memory = []
-        win_score = [0,0]
+        win_score = [[0,0],[0,0]]
         pipe_send_count = 0
         this_skip_count = 0
         
@@ -133,10 +137,20 @@ class exp_memory_class:
                 game.apply_move(*move)
             score = game.get_score()
             first_win_ratio = score[0]/sum(score)
-            if (score[0]>score[1] and turn == 1) or (score[0]<score[1] and turn == -1):
-                win_score[0]+=1
-            elif (score[0]>score[1] and turn == -1) or (score[0]<score[1] and turn == 1):
-                win_score[1]+=1
+            if turn == 1:
+                if score[0]>score[1]:
+                    win_score[0][0]+=1
+                else:
+                    win_score[1][0]+=1
+            elif turn == -1:
+                if score[0]>score[1]:
+                    win_score[1][1]+=1
+                else:
+                    win_score[0][1]+=1
+            # if (score[0]>score[1] and turn == 1) or (score[0]<score[1] and turn == -1):
+            #     win_score[0]+=1
+            # elif (score[0]>score[1] and turn == -1) or (score[0]<score[1] and turn == 1):
+            #     win_score[1]+=1
             #print(win_score)
             turn = 1
             for exp in game_exp:
@@ -183,5 +197,5 @@ class exp_memory_class:
         result_pipe.send((exp_memory,win_score))
         result_pipe.close()
         print(f"process name:{multiprocessing.current_process().name} Finished")
-        print(f"process name:{multiprocessing.current_process().name} win score:{win_score[0]}vs{win_score[1]}")
+        print(f"process name:{multiprocessing.current_process().name} win score:{np.sum(win_score[0])}vs{np.sum(win_score[1])}")
         return exp_memory,win_score
