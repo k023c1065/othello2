@@ -47,6 +47,7 @@ class exp_memory_class:
         
         order_win=[0,0] 
         for pipe in result_pipe:
+            pipe[1].send("GET")
             while not pipe[1].poll():
                 pass
             exp,win_score = pipe[1].recv()
@@ -194,6 +195,9 @@ class exp_memory_class:
             pipe.send((1,np.empty((8,8,2))))
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
+        while not result_pipe.poll():
+            pass
+        result_pipe.recv()
         result_pipe.send((exp_memory,win_score))
         result_pipe.close()
         print(f"process name:{multiprocessing.current_process().name} Finished")
