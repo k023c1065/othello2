@@ -130,7 +130,7 @@ class minimax_search2:
             for move in game.get_valid_moves():
                 x,y=move
                 score = prediction[x][y]
-                if game.turn != my_turn:
+                if game.turn == my_turn:
                     score = -score
                 if self.debug:print("--"+f"{x},{y} Score:{score}")
                 if score > best_score:
