@@ -69,8 +69,8 @@ class trainer_class:
         shuffle_num = 0
         best_model = None
         epoch = 0
-        loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
-        # loss_obj = self.tf.keras.losses.MeanSquaredError()
+        # loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
+        loss_obj = self.tf.keras.losses.MeanSquaredError()
         # loss_obj = self.tf.keras.losses.MeanAbsoluteError()
         optimizer = self.tf.keras.optimizers.Adam()
         model.summary()
@@ -111,40 +111,24 @@ class trainer_class:
                 ).batch(256).cache().prefetch(buffer_size=self.tf.data.AUTOTUNE)
                 do_shuffle = False
             tqdm_obj = tqdm(range(len(train_ds)))
-            acc_array = []
-            rand_acc_array = []
             try:
                 loss_array = []
                 #train_ds = train_ds.shuffle(25000,reshuffle_each_iteration=True,seed=random.randint(0,2**32))
                 for x,y in train_ds:
-                    poss_move = (y.numpy()/(y.numpy()+1e-30)).astype("float32")
                     loss,predictions = train_step(x,y)
-                    acc = (np.argmax(predictions*poss_move,axis=1)==np.argmax(y*poss_move,axis=1))
-                    acc_array += acc.tolist()
-                    rand_acc_array += (1/(self.tf.reduce_sum(poss_move,axis=1).numpy())).tolist()
                     loss_array.append(loss.numpy())
                     tqdm_obj.update(1)
-                    tqdm_obj.set_description(f"epoch: {epoch} loss:{np.mean(loss_array):.6f} train_acc:{np.mean(acc_array):.4f} rand_acc:{np.mean(rand_acc_array):.4f}")
+                    tqdm_obj.set_description(f"epoch: {epoch} loss:{np.mean(loss_array):.6f}")
             except KeyboardInterrupt:
                 print("Interrupted")
                 do_shuffle = True
             test_loss = []
-            rand_acc_array = []
-            acc_total = 0
             for x,y in test_ds:
                 predictions = model(x, training=False)
-                poss_move = (y.numpy()/(y.numpy()+1e-30)).astype("float32")
                 loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
-                
-                max_arg_predictions = np.argmax(predictions*poss_move,axis=1)
-                max_arg_y = np.argmax(y*poss_move,axis=1)
-                acc = (max_arg_predictions==max_arg_y)
-                rand_acc_array += (1/(self.tf.reduce_sum(poss_move,axis=1).numpy())).tolist()
-                acc_total += acc.sum()
                 test_loss.append(loss.numpy())
-            acc = acc_total/len(test_x)
             test_loss = np.mean(test_loss)
-            tqdm_obj.set_description(f"epoch:{epoch} loss:{np.mean(loss_array):.6f} train_acc:{np.mean(acc_array):.4f} test_loss:{test_loss:.6f} test_acc:{acc:.4f} rand_acc:{np.mean(rand_acc_array):.4f}")
+            tqdm_obj.set_description(f"epoch:{epoch} loss:{np.mean(loss_array):.6f} test_loss:{np.mean(test_loss):.6f}")
             tqdm_obj.close()
             if len(test_loss_array)>0 and test_loss>=test_loss_array[-1]:
                 fail_count += 1
@@ -153,7 +137,7 @@ class trainer_class:
             if len(test_loss_array)<1 or min(test_loss_array)>test_loss:
                 best_model = model
             test_loss_array.append(test_loss)
-            if fail_count>self.patience or epoch>=self.EPOCH or np.mean(acc_array)>0.6:
+            if fail_count>self.patience or epoch>=self.EPOCH:
                 do_shuffle = True
             if shuffle_num >= self.shuffle_num and do_shuffle:
                 assert(best_model is not None,"best_model is None")

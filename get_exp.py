@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 from game import format_board,othello_class
 import random,multiprocessing,time
@@ -6,9 +7,7 @@ import random
 def get_move(q_result,valid_moves):
     q = -100
     move = (-1,-1)
-    weights = []
-    for m in valid_moves:
-        weights.append(q_result[move[0]][move[1]])
+    weights = q_result
     weights = np.array(weights)
     weights = np.exp(weights)/np.exp(weights.sum())
     return random.choices(valid_moves,weights=weights,k=1)[0]
@@ -75,23 +74,26 @@ class exp_memory_class:
         return tmp_score
     def model_executer(self,num,proc_num):
         num = 60*num
-        input_x = [np.zeros((proc_num,8,8,2)),np.zeros((proc_num,8,8,2))]
+        
         turn2index = {
             1:0,
             -1:1,
         }
         tqdm_iter = tqdm(range(num*proc_num))
         for _ in range(num):
+            input_x = [[],[]]
             turn_data = []
             model_flg =[False,False]
             for i,pipe in enumerate(self.pipes):
                 #print(f"pipe recv id:{i}")
                 turn,data = pipe[1].recv()
                 turn = turn2index[turn]
+                data_len = len(data)
                 model_flg[turn]=True
-                turn_data.append(turn)
-                input_x[turn][i] = data
-            
+                turn_data.append((turn,data_len))
+                input_x[turn] += data
+            input_x[0] = np.array(input_x[0])
+            input_x[1] = np.array(input_x[1])
             output = [None,None]
             if model_flg[0]:
                 output[0] = self.model[0](input_x[0])
@@ -101,10 +103,12 @@ class exp_memory_class:
                 output[1] = self.model[1](input_x[1])
                 if not isinstance(output[1],np.ndarray):
                     output[1] = output[1].numpy()
+            len_index = [0,0]
             for i,pipe in enumerate(self.pipes):
                 #print(f"pipe send id:{i}")
-                turn = turn_data[i]
-                pipe[1].send(output[turn][i])
+                turn,length = turn_data[i]
+                pipe[1].send(output[turn][len_index[turn]:len_index[turn]+length])
+                len_index[turn] += length
             tqdm_iter.update(proc_num)
     @staticmethod
     def get_exp_single(game_num,pipe,result_pipe):
@@ -121,15 +125,20 @@ class exp_memory_class:
             random.seed(random.randint(0,2**32))
             turn = random.choice([1,-1])
             game_exp = []
-            while game.check_winner() == 0:
+            while game.check_winner() == 0: 
                 valid_moves = game.get_valid_moves()
                 move = (-1,-1)
                 if len(valid_moves)>0:
                     this_turn = game.turn if turn == 1 else -game.turn
-                    pipe.send((this_turn,format_board(game.board)))
+                    base_board = deepcopy(game.board)
+                    input_board = []
+                    for move in valid_moves:
+                        game.board = deepcopy(base_board)
+                        game.apply_move(*move)
+                        input_board.append(format_board(game.board).tolist())
+                    pipe.send((this_turn,input_board))
                     pipe_send_count += 1
                     r = pipe.recv()
-                    r = r.reshape(8,8)
                     move = get_move(r,valid_moves=valid_moves)
                 else:
                     this_skip_count += 1
@@ -156,43 +165,38 @@ class exp_memory_class:
             turn = 1
             for exp in game_exp:
                 if len(exp[2])>0:
-                    r = np.zeros((8,8))
+                    r = 0
                     selected_move_q = first_win_ratio
-                    if turn == -1:
+                    if turn == 1:
                         selected_move_q = 1-selected_move_q
                     if True or selected_move_q >0.5:
-                        for move in exp[2]:
-                            if move == exp[1]:
-                                r[move[0]][move[1]] = selected_move_q
-                            else:
-                                r[move[0]][move[1]] = 1 - selected_move_q
+                        r = selected_move_q
                         #r = np.exp(r)/np.exp(r).sum()
-                        if np.sum(r)>0:
-                            r = r/np.sum(r)
-                            exp_memory.append(
-                                [format_board(exp[0]),r.reshape(64)]
-                            )
-                            #Data Augmentation
-                            exp_memory.append(
-                                [format_board(np.rot90(exp[0],1)),np.rot90(r,1).reshape(64)]
-                            )
-                            exp_memory.append(
-                                [format_board(np.rot90(exp[0],2)),np.rot90(r,2).reshape(64)]
-                            )
-                            exp_memory.append(
-                                [format_board(np.rot90(exp[0],3)),np.rot90(r,3).reshape(64)]
-                            )
-                            exp_memory.append(
-                                [format_board(np.flipud(exp[0])),np.flipud(r).reshape(64)]
-                            )
-                            exp_memory.append(
-                                [format_board(np.fliplr(exp[0])),np.fliplr(r).reshape(64)]
-                            )
+                        
+                        exp_memory.append(
+                            [format_board(exp[0]),r]
+                        )
+                        #Data Augmentation
+                        exp_memory.append(
+                            [format_board(np.rot90(exp[0],1)),r]
+                        )
+                        exp_memory.append(
+                            [format_board(np.rot90(exp[0],2)),r]
+                        )
+                        exp_memory.append(
+                            [format_board(np.rot90(exp[0],3)),r]
+                        )
+                        exp_memory.append(
+                            [format_board(np.flipud(exp[0])),r]
+                        )
+                        exp_memory.append(
+                            [format_board(np.fliplr(exp[0])),r]
+                        )
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
-            pipe.send((1,np.empty((8,8,2))))
+            pipe.send((1,np.empty((8,8,2)).tolist()))
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         while not result_pipe.poll():

@@ -1,3 +1,4 @@
+import datetime
 from sklearn.discriminant_analysis import softmax
 from game import othello_class,format_board
 from modellib import model_class,miniResNet
@@ -23,7 +24,7 @@ def get_move(q_result,valid_moves):
 
 
 def random_model(x):
-    return np.ones((x.shape[0],64))
+    return np.ones((len(x),1))
 
 def parse_arg():
     
@@ -68,7 +69,7 @@ def main():
     multiprocessing.set_start_method('spawn', force=True)
     global tf
     arg = parse_arg()
-    gxp = exp_memory_class(miniResNet(input_shape=(8,8,2),output_dim=64),miniResNet(input_shape=(8,8,2),output_dim=64))
+    gxp = exp_memory_class(miniResNet(input_shape=(8,8,2),output_dim=1),miniResNet(input_shape=(8,8,2),output_dim=1))
     trainer = trainer_class(
         patience=arg["patience"],
         shuffle_num=arg["shuffle_num"],
@@ -78,15 +79,15 @@ def main():
     )
     model_files = glob("model/*.h5")
     model_name_seed= str(random.randint(0,2**62))
-    target_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=8)
+    target_model = miniResNet(input_shape=(8,8,2),output_dim=1,layer_num=8)
     target_model(np.zeros((1,8,8,2)),training=False)
     
     #model_filesを更新日時順でソートする
     model_files.sort(key=os.path.getmtime)
     if len(model_files)>0 and (not arg["init_model"]):
         target_model.load_weights(model_files[-1])
-        print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
-    best_model = miniResNet(input_shape=(8,8,2),output_dim=64,layer_num=8)
+        print(f"model loaded: {model_files[-1]} with updated date {datetime.datetime.fromtimestamp(os.path.getmtime(model_files[-1])).strftime('%Y-%m-%d %H:%M:%S')}")
+    best_model = miniResNet(input_shape=(8,8,2),output_dim=1,layer_num=8)
     
     gxp.update_model(target_model=target_model,best_model=best_model)
     if arg["init_model"]:

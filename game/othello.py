@@ -112,7 +112,7 @@ def format_board(board):
             elif board[i][j]==-1:
                 new_board[1][i][j]=1
 
-    return np.transpose(np.array(new_board),axes=(1,2,0))
+    return np.transpose(np.array(new_board,dtype="int8"),axes=(1,2,0))
 if __name__ == "__main__":
     import random,time
     s_t=time.time()
