@@ -91,7 +91,10 @@ class exp_memory_class:
                 data_len = len(data)
                 model_flg[turn]=True
                 turn_data.append((turn,data_len))
-                input_x[turn]=np.concatenate([input_x[turn],data])
+                if input_x[turn].shape[0] == 0:
+                    input_x[turn] = data
+                else:
+                    input_x[turn]=np.concatenate([input_x[turn],data])
                 
             input_x[0] = np.array(input_x[0])
             input_x[1] = np.array(input_x[1])
@@ -136,7 +139,11 @@ class exp_memory_class:
                     for move in valid_moves:
                         game.board = deepcopy(base_board)
                         game.apply_move(*move)
-                        input_board = np.concatenate([input_board,format_board(game.board)])
+                        if input_board.shape[0] == 0:
+                            input_board = format_board(game.board)[np.newaxis]
+                        else:
+                            input_board = np.concatenate([input_board,format_board(game.board)[np.newaxis]])
+                        
 
                     pipe.send((this_turn,input_board))
                     pipe_send_count += 1
