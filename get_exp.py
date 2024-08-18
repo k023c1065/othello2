@@ -99,8 +99,6 @@ class exp_memory_class:
                 
             input_x[0] = np.array(input_x[0])
             input_x[1] = np.array(input_x[1])
-            print(f"input_x[0].shape:{input_x[0].shape}")
-            print(f"input_x[1].shape:{input_x[1].shape}")
             output = [None,None]
             if model_flg[0]:
                 output[0] = self.model[0](input_x[0])
