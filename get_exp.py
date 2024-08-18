@@ -81,7 +81,7 @@ class exp_memory_class:
         }
         tqdm_iter = tqdm(range(num*proc_num))
         for _ in range(num):
-            input_x = [[],[]]
+            input_x = [np.array([]),np.array([])]
             turn_data = []
             model_flg =[False,False]
             for i,pipe in enumerate(self.pipes):
@@ -91,7 +91,8 @@ class exp_memory_class:
                 data_len = len(data)
                 model_flg[turn]=True
                 turn_data.append((turn,data_len))
-                input_x[turn] += data
+                input_x[turn]=np.concatenate([input_x[turn],data])
+                
             input_x[0] = np.array(input_x[0])
             input_x[1] = np.array(input_x[1])
             output = [None,None]
@@ -131,11 +132,12 @@ class exp_memory_class:
                 if len(valid_moves)>0:
                     this_turn = game.turn if turn == 1 else -game.turn
                     base_board = deepcopy(game.board)
-                    input_board = []
+                    input_board = np.array([])
                     for move in valid_moves:
                         game.board = deepcopy(base_board)
                         game.apply_move(*move)
-                        input_board.append(format_board(game.board).tolist())
+                        input_board = np.concatenate([input_board,format_board(game.board)])
+
                     pipe.send((this_turn,input_board))
                     pipe_send_count += 1
                     r = pipe.recv()
