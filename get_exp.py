@@ -91,6 +91,7 @@ class exp_memory_class:
                 data_len = len(data)
                 model_flg[turn]=True
                 turn_data.append((turn,data_len))
+                print(f"data shape:{data.shape}")
                 if input_x[turn].shape[0] == 0:
                     input_x[turn] = data
                 else:
@@ -98,6 +99,8 @@ class exp_memory_class:
                 
             input_x[0] = np.array(input_x[0])
             input_x[1] = np.array(input_x[1])
+            print(f"input_x[0].shape:{input_x[0].shape}")
+            print(f"input_x[1].shape:{input_x[1].shape}")
             output = [None,None]
             if model_flg[0]:
                 output[0] = self.model[0](input_x[0])
@@ -205,7 +208,7 @@ class exp_memory_class:
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
         for _ in range(60*game_num-pipe_send_count):
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty")
-            pipe.send((1,np.empty((8,8,2)).tolist()))
+            pipe.send((1,np.empty((1,8,8,2))))
             pipe.recv()
             #print(f"proc name:{multiprocessing.current_process().name} pipe send empty done")
         while not result_pipe.poll():
