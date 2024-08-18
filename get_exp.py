@@ -91,7 +91,7 @@ class exp_memory_class:
                 data_len = len(data)
                 model_flg[turn]=True
                 turn_data.append((turn,data_len))
-                print(f"data shape:{data.shape}")
+
                 if input_x[turn].shape[0] == 0:
                     input_x[turn] = data
                 else:
