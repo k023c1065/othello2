@@ -126,7 +126,7 @@ class trainer_class:
             pred_array = []
             for x,y in test_ds:
                 predictions = model(x, training=False)
-                pred_array.append(predictions)
+                pred_array.append(predictions.numpy())
                 loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
                 test_loss.append(loss.numpy())
             test_loss = np.mean(test_loss)
