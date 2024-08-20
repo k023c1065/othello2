@@ -80,6 +80,7 @@ class exp_memory_class:
             pipe[1].close()
 
         if len(self.memory) + len(self.latest_memory) > self.max_exp:
+            print("Memory is full. Shuffling and cutting")
             random.shuffle(self.memory)
             self.memory = self.memory[:self.max_exp//2-len(self.latest_memory)]
         self.pipes = []
@@ -193,7 +194,8 @@ class exp_memory_class:
                     if turn == 1:
                         selected_move_q = 1-selected_move_q
                     if True or selected_move_q >0.5:
-                        r = selected_move_q
+                        r = [selected_move_q]
+                        r = np.array(r,dtype=np.float32)
                         #r = np.exp(r)/np.exp(r).sum()
                         
                         exp_memory.append(
