@@ -4,13 +4,23 @@ from game import format_board,othello_class
 import random,multiprocessing,time
 from tqdm import tqdm
 import random
+import traceback
 def get_move(q_result,valid_moves):
+    
     q = -100
     move = (-1,-1)
+    
     weights = q_result
-    weights = np.array(weights)
-    weights = np.exp(weights)/np.exp(weights.sum())
-    return random.choices(valid_moves,weights=weights,k=1)[0]
+    try:
+        weights = np.array(weights)
+        weights = np.exp(weights)/np.exp(weights.sum())
+        return random.choices(valid_moves,weights=weights,k=1)[0]
+    except Exception as e:
+        print(e)
+        print(traceback.format_exc())
+        print(weights)
+        return random.choice(valid_moves)
+        
     
 class exp_memory_class:
     def __init__(self,target_model,best_model):
@@ -18,6 +28,7 @@ class exp_memory_class:
         self.latest_memory = []
         self.model = [target_model,best_model]
         self.pipes = []
+        self.max_exp = 2**22
     def update_model(self,target_model,best_model):
         self.model = [target_model,best_model]
     def reset(self):
@@ -68,7 +79,9 @@ class exp_memory_class:
             pipe[0].close()
             pipe[1].close()
 
-        
+        if len(self.memory) + len(self.latest_memory) > self.max_exp:
+            random.shuffle(self.memory)
+            self.memory = self.memory[:self.max_exp//2-len(self.latest_memory)]
         self.pipes = []
 
         return tmp_score
