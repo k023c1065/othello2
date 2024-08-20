@@ -123,14 +123,15 @@ class trainer_class:
                 print("Interrupted")
                 do_shuffle = True
             test_loss = []
-            pred_array = []
+            pred_array = np.array([])
             for x,y in test_ds:
                 predictions = model(x, training=False)
-                pred_array.append(predictions.numpy())
+                pred_array = np.concatenate([pred_array,predictions.numpy().flatten()])
                 loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
                 test_loss.append(loss.numpy())
             test_loss = np.mean(test_loss)
             pred_array = np.array(pred_array).flatten()
+
             pred_mean = pred_array.mean()
             pred_std = pred_array.std()
             tqdm_obj.set_description(f"epoch:{epoch} loss:{np.mean(loss_array):.6f} test_loss:{np.mean(test_loss):.6f} pred_mean:{pred_mean:.6f} pred_std:{pred_std:.6f}")
