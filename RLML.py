@@ -110,7 +110,10 @@ def main():
             best_model=target_model
         else:
             pass
-        target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
+        # This breaks batchnorm
+        #target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
+        
+        target_model.save(f"model/model_{model_name_seed}_gen{generation_no}",save_format="tf")
             #target_model=best_model
         gxp.join_exp()
         target_model = trainer.train(target_model,gxp)
