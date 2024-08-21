@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import random
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+
 
 class trainer_class:
     def __init__(self,patience=3,shuffle_num=5,dataset_size=1024*8,batch_size=64,epoch=50):
@@ -72,7 +75,7 @@ class trainer_class:
         # loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
         loss_obj = self.tf.keras.losses.MeanSquaredError()
         # loss_obj = self.tf.keras.losses.MeanAbsoluteError()
-        optimizer = self.tf.keras.optimizers.Adam()
+        optimizer = self.tf.keras.optimizers.Adam(clipvalue=1)
         model.summary()
         while True:
             epoch += 1
@@ -90,6 +93,8 @@ class trainer_class:
                     x.append(data[0])
                     y.append(data[1])
                 x = np.array(x,dtype="float32")
+                scaler = StandardScaler()
+                x = scaler.fit_transform(x.reshape(-1,64*2)).reshape(-1,8,8,2)
                 y = np.array(y,dtype="float32")
                 #Describe the data
                 print("------Data Description------")
@@ -131,10 +136,11 @@ class trainer_class:
                 test_loss.append(loss.numpy())
             test_loss = np.mean(test_loss)
             pred_array = np.array(pred_array).flatten()
-
+            # plt.hist(pred_array,bins=100)
+            # plt.show()
             pred_mean = pred_array.mean()
             pred_std = pred_array.std()
-            tqdm_obj.set_description(f"epoch:{epoch} loss:{np.mean(loss_array):.6f} test_loss:{np.mean(test_loss):.6f} pred_mean:{pred_mean:.6f} pred_std:{pred_std:.6f}")
+            tqdm_obj.set_description(f"epoch:{epoch} loss:{np.mean(loss_array):.6f} test_loss:{np.mean(test_loss):.6f} pred_mean:{pred_mean:.6f} pred_std:{pred_std:.6f} ")
             tqdm_obj.close()
             if len(test_loss_array)>0 and test_loss>=test_loss_array[-1]:
                 fail_count += 1
