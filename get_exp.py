@@ -115,11 +115,11 @@ class exp_memory_class:
             input_x[1] = np.array(input_x[1])
             output = [None,None]
             if model_flg[0]:
-                output[0] = self.model[0](input_x[0])
+                output[0] = self.model[0](input_x[0],training=False)
                 if not isinstance(output[0],np.ndarray):
                     output[0] = output[0].numpy()
             if model_flg[1]:
-                output[1] = self.model[1](input_x[1])
+                output[1] = self.model[1](input_x[1],training=False)
                 if not isinstance(output[1],np.ndarray):
                     output[1] = output[1].numpy()
             len_index = [0,0]
