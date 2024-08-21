@@ -4,60 +4,59 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import random
 from sklearn.preprocessing import StandardScaler
-
+import tensorflow as tf
 
 class trainer_class:
     def __init__(self,patience=3,shuffle_num=5,dataset_size=1024*8,batch_size=64,epoch=50):
-        import tensorflow as tf
-        self.tf = tf
+        
         self.patience = patience
         self.shuffle_num = shuffle_num
         self.dataset_size = dataset_size
         self.batch_size = batch_size
         self.EPOCH = epoch
     def get_loss(self,y,pred,poss_move):
-        n = self.tf.reduce_sum(poss_move,axis=1)
+        n = tf.reduce_sum(poss_move,axis=1)
         # Use mean squared error
-        #return self.tf.reduce_mean(self.tf.square(y - pred))
+        #return tf.reduce_mean(tf.square(y - pred))
         
         # Use cross entropy loss
-        return self.tf.reduce_mean(self.tf.nn.softmax_cross_entropy_with_logits(y,pred))
+        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y,pred))
         
         # Use special cross entropy loss 
-        pred_log = self.tf.math.log(pred)
+        pred_log = tf.math.log(pred)
         
         loss = y*pred_log
-        loss = self.tf.reduce_sum(loss,axis=1)
+        loss = tf.reduce_sum(loss,axis=1)
         loss = loss/n
-        result_mean = -self.tf.reduce_mean(loss)
+        result_mean = -tf.reduce_mean(loss)
         return result_mean
     
         # Step 2: Calculate the square of (y - pred)
         #print("y:",y.numpy())
         #print("pred:",pred.numpy())
-        squared_diff = self.tf.square(y - pred)
+        squared_diff = tf.square(y - pred)
         #print("squared_diff",squared_diff.numpy())
         # Step 3: Sum along axis 1
-        sum_squared_diff = self.tf.reduce_sum(squared_diff, axis=1)
+        sum_squared_diff = tf.reduce_sum(squared_diff, axis=1)
         #print("sum_squared_diff",sum_squared_diff.numpy().mean())
         # Step 4: Divide by n
         divided_by_n = sum_squared_diff / n
         #print("divided_by_n",divided_by_n.numpy().mean())
         # Step 5: Calculate the mean of the result
-        result_mean = self.tf.reduce_mean(divided_by_n)
+        result_mean = tf.reduce_mean(divided_by_n)
         #print("result_mean",result_mean)
         #input("Waiting...")
         return result_mean
     
     
     def train(self,model,gxp):
-        @self.tf.function
+        @tf.function
         def train_step(x,y):
-            with self.tf.GradientTape() as tape:
+            with tf.GradientTape() as tape:
                 # training=True is only needed if there are layers with different
                 # behavior during training versus inference (e.g. Dropout).
                 predictions = model(x, training=True)
-                loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
+                loss = loss_obj(y,tf.clip_by_value(predictions,1e-20,1.0))
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(
                 zip(gradients, model.trainable_variables)
@@ -71,10 +70,10 @@ class trainer_class:
         shuffle_num = 0
         best_model = None
         epoch = 0
-        # loss_obj = self.tf.keras.losses.CategoricalCrossentropy()
-        loss_obj = self.tf.keras.losses.MeanSquaredError()
-        # loss_obj = self.tf.keras.losses.MeanAbsoluteError()
-        optimizer = self.tf.keras.optimizers.Adam(clipvalue=1)
+        # loss_obj = tf.keras.losses.CategoricalCrossentropy()
+        loss_obj = tf.keras.losses.MeanSquaredError()
+        # loss_obj = tf.keras.losses.MeanAbsoluteError()
+        optimizer = tf.keras.optimizers.Adam(clipvalue=1)
         model.summary()
         while True:
             epoch += 1
@@ -92,8 +91,6 @@ class trainer_class:
                     x.append(data[0])
                     y.append(data[1])
                 x = np.array(x,dtype="float32")
-                scaler = StandardScaler()
-                x = scaler.fit_transform(x.reshape(-1,64*2)).reshape(-1,8,8,2)
                 y = np.array(y,dtype="float32")
                 #Describe the data
                 print("------Data Description------")
@@ -104,15 +101,15 @@ class trainer_class:
                 print("----------------------------")
                 train_x,test_x,train_y,test_y = train_test_split(x,y)
                 batch_size=64
-                train_ds =  self.tf.data.Dataset.from_tensor_slices(
+                train_ds =  tf.data.Dataset.from_tensor_slices(
                     (train_x, train_y)
                     )
                 train_ds = train_ds.shuffle(25000,reshuffle_each_iteration=True,seed=random.randint(0,2**32))
                 train_ds = train_ds.batch(self.batch_size)
-                train_ds = train_ds.cache().prefetch(buffer_size=self.tf.data.AUTOTUNE)
-                test_ds = self.tf.data.Dataset.from_tensor_slices(
+                train_ds = train_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
+                test_ds = tf.data.Dataset.from_tensor_slices(
                     (test_x,test_y)
-                ).batch(256).cache().prefetch(buffer_size=self.tf.data.AUTOTUNE)
+                ).batch(256).cache().prefetch(buffer_size=tf.data.AUTOTUNE)
                 do_shuffle = False
             tqdm_obj = tqdm(range(len(train_ds)))
             try:
@@ -131,7 +128,7 @@ class trainer_class:
             for x,y in test_ds:
                 predictions = model(x, training=False)
                 pred_array = np.concatenate([pred_array,predictions.numpy().flatten()])
-                loss = loss_obj(y,self.tf.clip_by_value(predictions,1e-20,1.0))
+                loss = loss_obj(y,tf.clip_by_value(predictions,1e-20,1.0))
                 test_loss.append(loss.numpy())
             test_loss = np.mean(test_loss)
             pred_array = np.array(pred_array).flatten()
@@ -146,13 +143,13 @@ class trainer_class:
             else:
                 fail_count = 0
             if len(test_loss_array)<1 or min(test_loss_array)>test_loss:
-                best_model = model
+                pass
+                #best_model = model
             test_loss_array.append(test_loss)
             if fail_count>self.patience or epoch>=self.EPOCH:
                 do_shuffle = True
             if shuffle_num >= self.shuffle_num and do_shuffle:
-                assert(best_model is not None,"best_model is None")
+                #assert(best_model is not None,"best_model is None")
                 #model = best_model
                 break
-            
         return model
