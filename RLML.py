@@ -23,7 +23,7 @@ def get_move(q_result,valid_moves):
     return random.choices(valid_moves,weights=weights,k=1)[0]
 
 
-def random_model(x):
+def random_model(x,**kwargs):
     return np.ones((len(x),1))
 
 def parse_arg():
@@ -113,7 +113,9 @@ def main():
         # This breaks batchnorm
         #target_model.save_weights(f"model/model_{model_name_seed}_gen{generation_no}.h5")
         
-        target_model.save(f"model/model_{model_name_seed}_gen{generation_no}",save_format="tf")
+        #target_model.save(f"model/model_{model_name_seed}_gen{generation_no}",save_format="tf")
+        
+        target_model.save(f"model/model_{model_name_seed}_gen{generation_no}.keras")
             #target_model=best_model
         gxp.join_exp()
         target_model = trainer.train(target_model,gxp)
