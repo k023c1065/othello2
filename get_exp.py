@@ -193,6 +193,9 @@ class exp_memory_class:
                     selected_move_q = first_win_ratio
                     if turn == 1:
                         selected_move_q = 1-selected_move_q
+                    else:
+                        exp[0] = np.array(exp[0])
+                        exp[0]*=-1
                     if True or selected_move_q >0.5:
                         r = [selected_move_q]
                         r = np.array(r,dtype=np.float32)
