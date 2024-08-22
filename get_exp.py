@@ -191,34 +191,34 @@ class exp_memory_class:
                 if len(exp[2])>0:
                     r = 0
                     selected_move_q = first_win_ratio
+                    board = np.array(exp[0])
                     if turn == 1:
                         selected_move_q = 1-selected_move_q
                     else:
-                        exp[0] = np.array(exp[0])
-                        exp[0]*=-1
+                        board*=-1
                     if True or selected_move_q >0.5:
                         r = [selected_move_q]
                         r = np.array(r,dtype=np.float32)
                         #r = np.exp(r)/np.exp(r).sum()
                         
                         exp_memory.append(
-                            [format_board(exp[0]),r]
+                            [format_board(board),r]
                         )
                         #Data Augmentation
                         exp_memory.append(
-                            [format_board(np.rot90(exp[0],1)),r]
+                            [format_board(np.rot90(board,1)),r]
                         )
                         exp_memory.append(
-                            [format_board(np.rot90(exp[0],2)),r]
+                            [format_board(np.rot90(board,2)),r]
                         )
                         exp_memory.append(
-                            [format_board(np.rot90(exp[0],3)),r]
+                            [format_board(np.rot90(board,3)),r]
                         )
                         exp_memory.append(
-                            [format_board(np.flipud(exp[0])),r]
+                            [format_board(np.flipud(board)),r]
                         )
                         exp_memory.append(
-                            [format_board(np.fliplr(exp[0])),r]
+                            [format_board(np.fliplr(board)),r]
                         )
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
