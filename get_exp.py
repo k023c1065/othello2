@@ -212,7 +212,7 @@ class exp_memory_class:
                             [format_board(np.rot90(board,2),turn),r]
                         )
                         exp_memory.append(
-                            [format_board(np.rot90(board,3).turn),r]
+                            [format_board(np.rot90(board,3),turn),r]
                         )
                         exp_memory.append(
                             [format_board(np.flipud(board),turn),r]
