@@ -91,9 +91,9 @@ class othello_class:
         return score
         
     def get_symbol(self,i):
-        if i == 1:
+        if i == self.turn:
             return "●"
-        if i == -1:
+        if i == -self.turn:
             return "○"
         return "□"
     def print_human_view(self):
@@ -103,13 +103,13 @@ class othello_class:
         s = "\n".join([str(i-1) + " " + s.split("\n")[i] if i!=0 else "  " + s.split("\n")[i] for i in range(0,9)])
         return s
 import numpy as np
-def format_board(board):
+def format_board(board,turn=1):
     new_board=[[[0]*8 for _ in range(8)],[[0]*8 for _ in range(8)]]
     for i in range(8):
         for j in range(8):
-            if board[i][j]==1:
+            if board[i][j]==turn:
                 new_board[0][i][j]=1
-            elif board[i][j]==-1:
+            elif board[i][j]==-turn:
                 new_board[1][i][j]=1
 
     return np.transpose(np.array(new_board,dtype="int8"),axes=(1,2,0))
