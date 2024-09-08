@@ -202,23 +202,23 @@ class exp_memory_class:
                         #r = np.exp(r)/np.exp(r).sum()
                         
                         exp_memory.append(
-                            [format_board(board),r]
+                            [format_board(board,turn),r]
                         )
                         #Data Augmentation
                         exp_memory.append(
-                            [format_board(np.rot90(board,1)),r]
+                            [format_board(np.rot90(board,1),turn),r]
                         )
                         exp_memory.append(
-                            [format_board(np.rot90(board,2)),r]
+                            [format_board(np.rot90(board,2),turn),r]
                         )
                         exp_memory.append(
-                            [format_board(np.rot90(board,3)),r]
+                            [format_board(np.rot90(board,3).turn),r]
                         )
                         exp_memory.append(
-                            [format_board(np.flipud(board)),r]
+                            [format_board(np.flipud(board),turn),r]
                         )
                         exp_memory.append(
-                            [format_board(np.fliplr(board)),r]
+                            [format_board(np.fliplr(board),turn),r]
                         )
                 turn *= -1
             #print(f"process name:{multiprocessing.current_process().name} game_num:{_game_num} win_score:{win_score} pipe_send_count:{pipe_send_count}")
