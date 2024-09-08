@@ -22,9 +22,21 @@ def get_move(q_result,valid_moves):
     weights = np.exp(weights)/np.exp(weights).sum()
     return random.choices(valid_moves,weights=weights,k=1)[0]
 
-
+board_value=[[120,-20,20,5,5,20,-20,120],
+            [-20,-40,-5,-5,-5,-5,-40,-20],
+            [20,-5,15,3,3,15,-5,20],
+            [5,-5,3,3,3,3,-5,5],
+            [5,-5,3,3,3,3,-5,5],
+            [20,-5,15,3,3,15,-5,20],
+            [-20,-40,-5,-5,-5,-5,-40,-20],
+            [120,-20,20,5,5,20,-20,120]]
+board_value = np.array(board_value)
+#apply sigmoid function
+board_value = 1/(1+np.exp(-board_value))
 def random_model(x,**kwargs):
-    return np.ones((len(x),1))
+    r = x[:,:,:,0]*board_value-x[:,:,:,1].board_value
+    r = r.sum(axis=(1,2))[:,np.newaxis]
+    return r
 
 def parse_arg():
     
