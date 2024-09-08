@@ -34,7 +34,7 @@ board_value = np.array(board_value)
 #apply sigmoid function
 board_value = 1/(1+np.exp(-board_value))
 def random_model(x,**kwargs):
-    r = x[:,:,:,0]*board_value-x[:,:,:,1].board_value
+    r = x[:,:,:,0]*board_value-x[:,:,:,1]*board_value
     r = r.sum(axis=(1,2))[:,np.newaxis]
     return r
 
