@@ -13,17 +13,20 @@ class Res_Block(tf.keras.Model):
         self.bn1 = kl.BatchNormalization()
         self.av1 = kl.Activation(tf.nn.relu)
         self.conv1 = kl.Conv2D(bneck_channels, kernel_size=1,
-                               strides=1, padding='valid', use_bias=False)
+                               strides=1, padding='valid', use_bias=False,
+                               kernel_initializer='he_normal')
 
         self.bn2 = kl.BatchNormalization()
         self.av2 = kl.Activation(tf.nn.relu)
         self.conv2 = kl.Conv2D(bneck_channels, kernel_size=3,
-                               strides=1, padding='same', use_bias=False)
+                               strides=1, padding='same', use_bias=False,
+                               kernel_initializer='he_normal')
 
         self.bn3 = kl.BatchNormalization()
         self.av3 = kl.Activation(tf.nn.relu)
         self.conv3 = kl.Conv2D(out_channels, kernel_size=1,
-                               strides=1, padding='valid', use_bias=False)
+                               strides=1, padding='valid', use_bias=False,
+                               kernel_initializer='he_normal')
 
         self.shortcut = self._scblock(in_channels, out_channels)
         self.add = kl.Add()
@@ -41,10 +44,10 @@ class Res_Block(tf.keras.Model):
     def call(self, x, training):
         out1 = self.conv1(self.av1(self.bn1(x, training=training)))
         out2 = self.conv2(self.av2(self.bn2(out1, training=training)))
-        out3 = self.conv3(self.av3(self.bn3(out2, training=training)))
+        out3 = self.conv3(self.bn3(out2, training=training))
         shortcut = self.shortcut(x)
         out4 = self.add([out3, shortcut])
-        return out4
+        return self.av3(out4)
     
 
 class miniResNet(tf.keras.Model):
@@ -55,14 +58,16 @@ class miniResNet(tf.keras.Model):
             kl.BatchNormalization(),
             kl.Activation(tf.nn.relu),
             kl.Conv2D(256, kernel_size=3, strides=(1, 1),
-                      padding="same", activation="relu"),
+                      padding="same", activation="relu",
+                      kernel_initializer='he_normal'),
             [Res_Block(256, 256) for _ in range(layer_num)],
             kl.GlobalAveragePooling2D(),
             #kl.Dense(512, activation="relu"),
-            kl.Dense(output_dim, activation="sigmoid")
+            kl.Dense(output_dim, activation="sigmoid",kernel_initializer='he_normal')
         ]
 
     def call(self, x, training=True, isDebug=False):
+        print("training:",training)
         try:
             assert (self.init_input_shape == x.shape[1:])
         except AssertionError:
