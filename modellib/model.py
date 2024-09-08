@@ -67,7 +67,7 @@ class miniResNet(tf.keras.Model):
         ]
 
     def call(self, x, training=True, isDebug=False):
-        print("training:",training)
+        if isDebug:print("training:",training)
         try:
             assert (self.init_input_shape == x.shape[1:])
         except AssertionError:

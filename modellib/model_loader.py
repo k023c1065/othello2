@@ -14,9 +14,10 @@ def load_model() -> miniResNet:
         model.load_weights(model_files[-1])
     return model
 class model_class:
-    def __init__(self) -> None:
+    def __init__(self,isDebug=False):
         self.model = self.load_model()
         self.pattern = np.array([2**i for i in range(0,8)],dtype="uint8")
+        self.debug = False
     def load_model(self) -> miniResNet:
         model = miniResNet(input_shape=(8,8,2),output_dim=1,layer_num=8)
         model(np.zeros((1,8,8,2)),training=False)
@@ -39,7 +40,7 @@ class model_class:
     #@functools.lru_cache(maxsize=512)
     def _predict(self,x,training=False) -> np.ndarray:
         #x = x.data
-        print(f"training:{training}")
+        if self.isDebug:print(f"training:{training}")
         return self.model(x,training=training).numpy()
     
 class hashable_board:
