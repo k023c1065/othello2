@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 from .model import miniResNet
 from glob import glob
@@ -17,7 +18,7 @@ class model_class:
     def __init__(self,isDebug=False):
         self.model = self.load_model()
         self.pattern = np.array([2**i for i in range(0,8)],dtype="uint8")
-        self.debug = False
+        self.debug = isDebug
     def load_model(self) -> miniResNet:
         model = miniResNet(input_shape=(8,8,2),output_dim=1,layer_num=8)
         model(np.zeros((1,8,8,2)),training=False)
@@ -29,7 +30,7 @@ class model_class:
                 model.load_weights(model_files[-1])
             else:
                 model = tf.keras.models.load_model(model_files[-1])
-            print(f"model loaded:{model_files[-1]} with updated date{os.path.getmtime(model_files[-1])}")
+            print(f"model loaded:{model_files[-1]} with updated date{datetime.datetime.fromtimestamp(os.path.getmtime(model_files[-1]))}")
         print("init_output:",model(np.zeros((1,8,8,2)),training=False))
         return model
     
@@ -40,7 +41,7 @@ class model_class:
     #@functools.lru_cache(maxsize=512)
     def _predict(self,x,training=False) -> np.ndarray:
         #x = x.data
-        if self.isDebug:print(f"training:{training}")
+        if self.debug:print(f"training:{training}")
         return self.model(x,training=training).numpy()
     
 class hashable_board:

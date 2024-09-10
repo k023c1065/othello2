@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<head>
+    <title>AIオセロゲーム</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Bootstrap CSS -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <!-- Bootstrap Javascript(jQuery含む) -->
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    
+</head>
+<body>
+    <h1>AIオセロゲーム</h1>
+    <div class="game-start-button" style="flex: 1; text-align: center;">
+        <button type="button" id="start" onclick="init_othello(1)">先行</button>
+        <button type="button" id="start" onclick="init_othello(-1)">後行</button>
+    </div>
+    <div class="game-info">
+        <div class="game-info-turn">
+            <span>Turn:</span>
+            <span id="turn">Black</span>
+        </div>
+        <div class="game-info__result">
+            <span>Result:</span>
+            <span id="result">-</span>
+        </div>
+    <div class="canvas-wrap">
+        <!-- ボードを表示するためのcanvas-->
+        <canvas id="canvas_board" width="500" height="500"></canvas>
+        <!-- 石などを表示するためのcanvas-->
+        <canvas id="canvas_stone" width="500" height="500"></canvas>
+    </div>
+    <script type="text/javascript" src="{{ url_for('static', filename='script.js') }}"></script>
+</body>   

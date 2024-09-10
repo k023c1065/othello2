@@ -1,3 +1,4 @@
+import random
 from game import othello_class,minimax_search2,ab_search,format_board
 from modellib import *
 from gui import othello_gui,game_mode
@@ -27,6 +28,8 @@ class main_controler:
         elif self.gui.game_mode == game_mode.GAME:
             if self.game.turn == self.HUMAN_TURN:
                 x,y = args.x//90,args.y//90
+                # moves = self.game.get_valid_moves()
+                # x,y = random.choice(moves)
                 if self.try_move(x,y):
                     self.gui.update_board(board = self.game.board)
             if self.game.check_winner() !=0:
@@ -36,7 +39,7 @@ class main_controler:
                 self.gui.update_board(score = self.game.get_score())
                 return        
             if self.game.turn != self.HUMAN_TURN:
-                score,ai_move = self.AI.search(self.game,1,3)
+                score,ai_move = self.AI.search(self.game,self.game.turn,2)
                 print(score)
                 self.game.apply_move(*ai_move)
                 self.gui.update_board(board = self.game.board)

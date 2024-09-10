@@ -1,0 +1,27 @@
+.canvas-wrap{
+    position: relative;
+    padding: 0;
+    box-sizing: content-box;
+    width:640px;
+    margin:0 auto;
+}
+.canvas_warp:before{
+    content:"";
+    display: block;
+    padding-top: 50%;
+}
+.canvas-wrap > canvas {
+    position: absolute;
+    border: 0;
+    box-sizing: content-box;
+    padding: 0;
+
+
+    
+}
+
+.game-start-button{
+    display:block;
+    width:640px;
+    margin:0 auto;
+  }

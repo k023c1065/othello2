@@ -6,3 +6,5 @@ model/*
 *__pycache__*
 .venv/*
 *.zip
+model_1614269981778787718_gen0.keras
+test2.py

@@ -3,6 +3,7 @@ from ..othello import othello_class,format_board
 import numpy as np
 from copy import copy,deepcopy
 
+
 class minimax_search:
     def __init__(self,load_model_before=False,isDebug=False):
         self.debug = isDebug
@@ -78,15 +79,29 @@ class minimax_search2:
         s_t = time.time()
         r = self.main_search(game,my_turn,depth)
         print(r)
+        #get simple search reward
+        tmp_input = []
+        simple_r = []
+        for move in game.get_valid_moves():
+            game.apply_move(*move)
+            simple_r.append(
+                self.model.predict(np.array(format_board(game.board,game.turn))[np.newaxis].astype("float32"),training=False,verbose=0).reshape(-1)
+            )
+            game.undo_move()
+        simple_r = np.array(simple_r)
+        simple_r = simple_r/simple_r.sum()
+        for i,move in enumerate(game.get_valid_moves()):
+            print(f"{move}:{simple_r[i]}")
         if self.debug:print(f"Main search time:{time.time()-s_t}")
         if self.debug:
-            simple_r = self.model.predict(format_board(game.board)[np.newaxis],verbose=0).reshape(8,8)
-            valid_move = game.get_valid_moves()
-            print("---simple_r---")
-            print(simple_r)
-            for m in valid_move:
-                print(m,simple_r[m[0]][m[1]])
-            print("---simple_r end---")
+            # simple_r = self.model.predict(format_board(game.board)[np.newaxis],verbose=0).reshape(8,8)
+            # valid_move = game.get_valid_moves()
+            # print("---simple_r---")
+            # print(simple_r)
+            # for m in valid_move:
+            #     print(m,simple_r[m[0]][m[1]])
+            # print("---simple_r end---")
+            pass
             
         return r
     def get_board_hash(self,board):
@@ -98,7 +113,10 @@ class minimax_search2:
         if game.check_winner() != 0:
             return int(game.check_winner()==game.turn),(-1,-1)
         if depth == 0:
-            self.predict_input.append(format_board(game.board))
+            for move in game.get_valid_moves():
+                game.apply_move(*move)
+                self.predict_input.append(format_board(game.board,game.turn))
+                game.undo_move()
         else:
             valid_moves = game.get_valid_moves()
             for move in valid_moves:
@@ -111,7 +129,7 @@ class minimax_search2:
         if self.debug:print("Predicting...")
         if self.debug:print(f"Predict input:{len(self.predict_input)}")
         s_t = time.time()
-        prediction = model.predict(np.array(self.predict_input),verbose=0)
+        prediction = model.predict(np.array(self.predict_input).astype("float32"),training=False,verbose=0)
         if self.debug:print(f"Predict time:{time.time()-s_t}")
         if self.debug:print("Saving")
         s_t = time.time()
@@ -124,18 +142,21 @@ class minimax_search2:
             return int(game.check_winner()==game.turn),(-1,-1)
         if depth == 0:
             #prediction = model.predict(format_board(game.board)[np.newaxis],verbose=0).reshape(8,8)
-            prediction = self.predict_data_dict[self.get_board_hash(format_board(game.board))].reshape(8,8)
+            # prediction = self.predict_data_dict[self.get_board_hash(format_board(game.board))].reshape(8,8)
             best_score = -100
             best_move = -1,-1
             for move in game.get_valid_moves():
+                game.apply_move(*move)
+                score = self.predict_data_dict[self.get_board_hash(format_board(game.board,game.turn))]
                 x,y=move
-                score = prediction[x][y]
-                if game.turn == my_turn:
-                    score = -score
-                if self.debug:print("--"+f"{x},{y} Score:{score}")
+                # if game.turn != my_turn:
+                #     score = -score
+                if self.debug:print("-"*4+f"{x},{y} Score:{score}")
+                #if self.debug:print(f"board:\n{game.print_human_view()}")
                 if score > best_score:
                     best_score = score
                     best_move = move
+                game.undo_move()
             return best_score,best_move
         else:
             if game.turn == my_turn:
@@ -158,11 +179,11 @@ class minimax_search2:
                 for move in game.get_valid_moves():
                     x,y=move
                     game.apply_move(x,y)
-                    if self.debug:print((2-depth)*"-"+f"b {x},{y}")
+                    if self.debug:print((4-depth)*"-"+f"b {x},{y}")
                     score = self.main_search(game,my_turn,depth-1)[0]
                     if score < best_score:
                         best_score = score
                         best_move = move
-                    if self.debug:print((2-depth)*"-"+f"Score:{score}")
+                    if self.debug:print((4-depth)*"-"+f"Score:{score}")
                     game.undo_move()
                 return best_score,best_move
