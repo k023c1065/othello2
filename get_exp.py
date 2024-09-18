@@ -167,8 +167,9 @@ class exp_memory_class:
                 else:
                     this_skip_count += 1
                     move = (-1,-1)
-                game_exp.append((game.board,move,valid_moves))
                 game.apply_move(*move)
+                game_exp.append((game.board,move,valid_moves))
+                
             score = game.get_score()
             first_win_ratio = score[0]/sum(score)
             if turn == 1:
@@ -187,6 +188,7 @@ class exp_memory_class:
             #     win_score[1]+=1
             #print(win_score)
             turn = 1
+            game = othello_class()
             for exp in game_exp:
                 if len(exp[2])>0:
                     r = 0
